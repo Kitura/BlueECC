@@ -39,26 +39,28 @@ public struct Plaintext {
     public func signUsing(ecPrivateKey: ECPrivateKey) -> Signature? {
         
         let signature: Data
-        let hash = ecPrivateKey.hashAlgorithm.digest(data: data)
-        
         #if os(Linux)
-            let maxSigLength = Int(ECDSA_size(ecPrivateKey.nativeKey))
-            let signedBytes = UnsafeMutablePointer<UInt8>.allocate(capacity: maxSigLength)
-            let signedBytesLength = UnsafeMutablePointer<UInt32>.allocate(capacity: 1)
+            let md_ctx = EVP_MD_CTX_new_wrapper()
+        
             defer {
-                #if swift(>=4.1)
-                signedBytes.deallocate()
-                signedBytesLength.deallocate()
-                #else
-                signedBytes.deallocate(capacity: maxSigLength)
-                signedBytesLength.deallocate(capacity: 1)
-                #endif
+                EVP_MD_CTX_free_wrapper(md_ctx)
             }
-            ECDSA_sign(0, [UInt8](hash), Int32(hash.count), signedBytes, signedBytesLength, ecPrivateKey.nativeKey)
-            signature = Data(bytes: signedBytes, count: Int(signedBytesLength.pointee))
+            let evp_key = EVP_PKEY_new()
+            let _ = EVP_PKEY_set1_EC_KEY(evp_key, ecPrivateKey.nativeKey)
+            var pkey_ctx = EVP_PKEY_CTX_new(evp_key, nil)
+            EVP_DigestSignInit(md_ctx, &pkey_ctx, ecPrivateKey.hashAlgorithm.signingAlgorithm, nil, evp_key)
+            _ = self.data.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in
+                return EVP_DigestUpdate(md_ctx, message, self.data.count)
+            })
+            var sig_len: Int = 0
+            EVP_DigestSignFinal(md_ctx, nil, &sig_len)
+            let sig = UnsafeMutablePointer<UInt8>.allocate(capacity: sig_len)
+            let _ = EVP_DigestSignFinal(md_ctx, sig, &sig_len)
+            signature = Data(bytes: sig, count: sig_len)
         #else
             // MacOS, iOS ect.
-        
+            let hash = ecPrivateKey.hashAlgorithm.digest(data: data)
+
             // Memory storage for error from SecKeyCreateSignature
             var error: Unmanaged<CFError>? = nil
         

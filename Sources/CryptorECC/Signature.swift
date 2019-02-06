@@ -50,12 +50,18 @@ public struct Signature {
         // r value is first 32 bytes
         var rSig =  Data(data.dropLast(ecPublicKey.hashAlgorithm.signatureLength/2))
         // If first bit is 1, add a 00 byte to mark it as positive for ASN1
+        if rSig[0] == 0 {
+            rSig = rSig.advanced(by: 1)
+        }
         if rSig[0].leadingZeroBitCount == 0 {
             rSig = Data(count: 1) + rSig
         }
         // r value is last 32 bytes
         var sSig = Data(data.dropFirst(ecPublicKey.hashAlgorithm.signatureLength/2))
         // If first bit is 1, add a 00 byte to mark it as positive for ASN1
+        if sSig[0] == 0 {
+            sSig = sSig.advanced(by: 1)
+        }
         if sSig[0].leadingZeroBitCount == 0 {
             sSig = Data(count: 1) + sSig
         }
@@ -78,8 +84,25 @@ public struct Signature {
         let hash = ecPublicKey.hashAlgorithm.digest(data: plaintext.data)
         #if os(Linux)
             let signatureBytes = [UInt8](asnSignature)
-            let verify = ECDSA_verify(0, [UInt8](hash), Int32(hash.count), signatureBytes, Int32(signatureBytes.count), ecPublicKey.nativeKey)
-            return verify == 1
+            let md_ctx = EVP_MD_CTX_new_wrapper()
+            defer {
+                EVP_MD_CTX_free_wrapper(md_ctx)
+            }
+            let evp_key = EVP_PKEY_new()
+            EVP_PKEY_set1_EC_KEY(evp_key, ecPublicKey.nativeKey)
+            var pkey_ctx = EVP_PKEY_CTX_new(evp_key, nil)
+            EVP_DigestVerifyInit(md_ctx, &pkey_ctx, ecPublicKey.hashAlgorithm.signingAlgorithm, nil, evp_key)
+            let _ = plaintext.data.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in
+                return EVP_DigestUpdate(md_ctx, message, plaintext.data.count)
+            })
+            let rc = asnSignature.withUnsafeBytes({ (sig: UnsafePointer<UInt8>) -> Int32 in
+                // Wrapper for OpenSSL EVP_DigestVerifyFinal function defined in
+                // IBM-Swift/OpenSSL/shim.h, to provide compatibility with OpenSSL
+                // 1.0.1 and 1.0.2 on Ubuntu 14.04 and 16.04, respectively.
+                return SSL_EVP_digestVerifyFinal_wrapper(md_ctx, sig, asnSignature.count)
+            })
+        
+            return rc == 1
         #else
             // MacOS, iOS ect.
         
