@@ -25,7 +25,8 @@ public typealias CC_LONG = size_t
 @available(OSX 10.12, *)
 struct HashAlgorithm {
 
-    let length: CC_LONG
+    let hashLength: CC_LONG
+    let signatureLength: Int
     
     #if !os(Linux)
     let signingAlgorithm: SecKeyAlgorithm
@@ -39,33 +40,39 @@ struct HashAlgorithm {
 
     #if os(Linux)
     /// Secure Hash Algorithm 2 256-bit
-    static let sha256 = HashAlgorithm(length: CC_LONG(SHA256_DIGEST_LENGTH),
+    static let sha256 = HashAlgorithm(hashLength: CC_LONG(SHA256_DIGEST_LENGTH),
+                                      signatureLength: 64,
                                       engine: SHA256)
     #else
     /// Secure Hash Algorithm 2 256-bit
-    static let sha256 = HashAlgorithm(length: CC_LONG(CC_SHA256_DIGEST_LENGTH),
+    static let sha256 = HashAlgorithm(hashLength: CC_LONG(CC_SHA256_DIGEST_LENGTH),
+                                      signatureLength: 64,
                                       signingAlgorithm: .ecdsaSignatureDigestX962SHA256,
                                       engine: CC_SHA256)
     #endif
     
     #if os(Linux)
     /// Secure Hash Algorithm 2 384-bit
-    static let sha384 = HashAlgorithm(length: CC_LONG(SHA384_DIGEST_LENGTH),
+    static let sha384 = HashAlgorithm(hashLength: CC_LONG(SHA384_DIGEST_LENGTH),
+                                      signatureLength: 96,
                                       engine: SHA384)
     #else
     /// Secure Hash Algorithm 2 384-bit
-    static let sha384 = HashAlgorithm(length: CC_LONG(CC_SHA384_DIGEST_LENGTH),
+    static let sha384 = HashAlgorithm(hashLength: CC_LONG(CC_SHA384_DIGEST_LENGTH),
+                                      signatureLength: 96,
                                       signingAlgorithm: .ecdsaSignatureDigestX962SHA384,
                                       engine: CC_SHA384)
     #endif
     
     #if os(Linux)
     /// Secure Hash Algorithm 512-bit
-    static let sha512 = HashAlgorithm(length: CC_LONG(SHA512_DIGEST_LENGTH),
+    static let sha512 = HashAlgorithm(hashLength: CC_LONG(SHA512_DIGEST_LENGTH),
+                                      signatureLength: 132,
                                       engine: SHA512)
     #else
     /// Secure Hash Algorithm 512-bit
-    static let sha512 = HashAlgorithm(length: CC_LONG(CC_SHA512_DIGEST_LENGTH),
+    static let sha512 = HashAlgorithm(hashLength: CC_LONG(CC_SHA512_DIGEST_LENGTH),
+                                      signatureLength: 132,
                                       signingAlgorithm: .ecdsaSignatureDigestX962SHA512,
                                       engine: CC_SHA512)
     #endif
@@ -99,7 +106,7 @@ struct HashAlgorithm {
     ///
     func digest(data: Data) -> Data {
         
-        var hash = [UInt8](repeating: 0, count: Int(self.length))
+        var hash = [UInt8](repeating: 0, count: Int(self.hashLength))
         
         data.withUnsafeBytes {
             

@@ -14,6 +14,11 @@
 //
 
 import Foundation
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+import CommonCrypto
+#elseif os(Linux)
+import OpenSSL
+#endif
 
 @available(OSX 10.12, *)
 public struct ECPublicKey {
@@ -30,6 +35,15 @@ public struct ECPublicKey {
             return nil
         }
         let (result, _) = ASN1.toASN1Element(data: asn1Key)
+        guard case let ASN1.ASN1Element.seq(elements: seq) = result,
+            seq.count > 1,
+            case let ASN1.ASN1Element.seq(elements: ids) = seq[0],
+            ids.count > 1,
+            case let ASN1.ASN1Element.bytes(data: privateKeyID) = ids[1],
+            let hashAlgorithm = HashAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID) else {
+                return nil
+        }
+        self.hashAlgorithm = hashAlgorithm
         #if os(Linux)
             guard let key = pemKey.data(using: .utf8) else {
                 return nil
@@ -42,16 +56,9 @@ public struct ECPublicKey {
             BIO_free(bio)
             self.nativeKey = publicKey
         #else
-            guard case let ASN1.ASN1Element.seq(elements: seq) = result,
-                seq.count > 1,
-                case let ASN1.ASN1Element.seq(elements: ids) = seq[0],
-                ids.count > 1,
-                case let ASN1.ASN1Element.bytes(data: privateKeyID) = ids[1],
-                let hashAlgorithm = HashAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID),
-                case let ASN1.ASN1Element.bytes(data: publicKeyData) = seq[1] else {
-                    return nil
+            guard case let ASN1.ASN1Element.bytes(data: publicKeyData) = seq[1] else {
+                return nil
             }
-        self.hashAlgorithm = hashAlgorithm
             let keyData = publicKeyData.drop(while: { $0 == 0x00})
             var error: Unmanaged<CFError>? = nil
             guard let secKey = SecKeyCreateWithData(keyData as CFData,

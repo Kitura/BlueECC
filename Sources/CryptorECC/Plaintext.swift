@@ -42,18 +42,19 @@ public struct Plaintext {
         let hash = ecPrivateKey.hashAlgorithm.digest(data: data)
         
         #if os(Linux)
-            let signedBytes = UnsafeMutablePointer<UInt8>.allocate(capacity: 73)
+            let maxSigLength = Int(ECDSA_size(ecPrivateKey.nativeKey))
+            let signedBytes = UnsafeMutablePointer<UInt8>.allocate(capacity: maxSigLength)
             let signedBytesLength = UnsafeMutablePointer<UInt32>.allocate(capacity: 1)
             defer {
                 #if swift(>=4.1)
                 signedBytes.deallocate()
                 signedBytesLength.deallocate()
                 #else
-                signedBytes.deallocate(capacity: 73)
+                signedBytes.deallocate(capacity: maxSigLength)
                 signedBytesLength.deallocate(capacity: 1)
                 #endif
             }
-            ECDSA_sign(0, hash, Int32(hash.count), signedBytes, signedBytesLength, privateKey.nativeKey)
+            ECDSA_sign(0, [UInt8](hash), Int32(hash.count), signedBytes, signedBytesLength, ecPrivateKey.nativeKey)
             signature = Data(bytes: signedBytes, count: Int(signedBytesLength.pointee))
         #else
             // MacOS, iOS ect.
@@ -69,7 +70,6 @@ public struct Plaintext {
             }
             signature = cfSignature as Data
         #endif
-        print(signature.base64EncodedString())
         // Parse ASN into just r,s data as defined in:
         // https://tools.ietf.org/html/rfc7518#section-3.4
         let (asnSig, _) = ASN1.toASN1Element(data: signature)
@@ -83,10 +83,20 @@ public struct Plaintext {
         }
         // ASN adds 00 bytes in front of negative Int to mark it as positive.
         // These must be removed to make r,a a valid EC signature
-        let rExtra = rData.count - 32
-        let trimmedRData = rData.dropFirst(rExtra)
-        let sExtra = sData.count - 32
-        let trimmedSData = sData.dropFirst(sExtra)
+        let trimmedRData: Data
+        let trimmedSData: Data
+        let rExtra = rData.count - ecPrivateKey.hashAlgorithm.signatureLength/2
+        if rExtra < 0 {
+            trimmedRData = Data(count: 1) + rData
+        } else {
+            trimmedRData = rData.dropFirst(rExtra)
+        }
+        let sExtra = sData.count - ecPrivateKey.hashAlgorithm.signatureLength/2
+        if sExtra < 0 {
+            trimmedSData = Data(count: 1) + sData
+        } else {
+            trimmedSData = sData.dropFirst(sExtra)
+        }
         return Signature(data: trimmedRData + trimmedSData)
     }
 }

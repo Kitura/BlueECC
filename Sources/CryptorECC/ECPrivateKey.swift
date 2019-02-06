@@ -14,6 +14,11 @@
 //
 
 import Foundation
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+import CommonCrypto
+#elseif os(Linux)
+import OpenSSL
+#endif
 
 @available(OSX 10.12, *)
 public struct ECPrivateKey {
@@ -36,14 +41,25 @@ public struct ECPrivateKey {
             case let ASN1.ASN1Element.seq(elements: ids) = es[1],
             ids.count > 1,
             case let ASN1.ASN1Element.bytes(data: privateKeyID) = ids[1],
-            let hashAlgorithm = HashAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID),
-            case let ASN1.ASN1Element.bytes(data: privateOctest) = es[2] else {
+            let hashAlgorithm = HashAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID) else {
                 return nil
         }
         self.hashAlgorithm = hashAlgorithm
         #if os(Linux)
-            self.init(pemKey: p8Key)
+            guard let key = p8Key.data(using: .utf8) else {
+                return nil
+            }
+            let bio = BIO_new(BIO_s_mem())
+            key.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> Void in
+                BIO_puts(bio, bytes)
+            }
+            let privateKey = PEM_read_bio_ECPrivateKey(bio, nil, nil, nil)
+            BIO_free(bio)
+            self.nativeKey = privateKey
         #else
+            guard case let ASN1.ASN1Element.bytes(data: privateOctest) = es[2] else {
+                    return nil
+            }
             let (octest, _) = ASN1.toASN1Element(data: privateOctest)
             guard case let ASN1.ASN1Element.seq(elements: seq) = octest,
                 seq.count >= 3,
@@ -74,15 +90,13 @@ public struct ECPrivateKey {
         let (result, _) = ASN1.toASN1Element(data: asn1Key)
         guard case let ASN1.ASN1Element.seq(elements: seq) = result,
             seq.count > 3,
-            case let ASN1.ASN1Element.bytes(data: privateKeyData) = seq[1],
             case let ASN1.ASN1Element.constructed(tag: _, elem: objectElement) = seq[2],
             case let ASN1.ASN1Element.bytes(data: objectId) = objectElement,
-            let hashAlgorithm = HashAlgorithm.objectToHashAlg(ObjectIdentifier: objectId),
-            case let ASN1.ASN1Element.constructed(tag: _, elem: publicElement) = seq[3],
-            case let ASN1.ASN1Element.bytes(data: publicKeyData) = publicElement else {
+            let hashAlgorithm = HashAlgorithm.objectToHashAlg(ObjectIdentifier: objectId) else {
                 return nil
         }
         self.hashAlgorithm = hashAlgorithm
+        
         #if os(Linux)
             guard let key = pemKey.data(using: .utf8) else {
                 return nil
@@ -95,6 +109,11 @@ public struct ECPrivateKey {
             BIO_free(bio)
             self.nativeKey = privateKey
         #else
+            guard case let ASN1.ASN1Element.bytes(data: privateKeyData) = seq[1],
+                case let ASN1.ASN1Element.constructed(tag: _, elem: publicElement) = seq[3],
+                case let ASN1.ASN1Element.bytes(data: publicKeyData) = publicElement else {
+                    return nil
+            }
             let keyData = publicKeyData.drop(while: { $0 == 0x00}) + privateKeyData
             var error: Unmanaged<CFError>? = nil
             guard let secKey = SecKeyCreateWithData(keyData as CFData,

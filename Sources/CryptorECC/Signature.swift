@@ -40,7 +40,7 @@ public struct Signature {
     public func verify(plaintext: Plaintext, using ecPublicKey: ECPublicKey) -> Bool {
         
         // Signature must be 64 bytes or it is invalid
-        guard data.count == 64 else {
+        guard data.count == ecPublicKey.hashAlgorithm.signatureLength else {
             print("invalid signatureData length: \(data.count)")
             return false
         }
@@ -48,13 +48,13 @@ public struct Signature {
         // Convert r,s signature to ASN1 for SecKeyVerifySignature
         var asnSignature = Data()
         // r value is first 32 bytes
-        var rSig =  Data(data.dropLast(32))
+        var rSig =  Data(data.dropLast(ecPublicKey.hashAlgorithm.signatureLength/2))
         // If first bit is 1, add a 00 byte to mark it as positive for ASN1
         if rSig[0].leadingZeroBitCount == 0 {
             rSig = Data(count: 1) + rSig
         }
         // r value is last 32 bytes
-        var sSig = Data(data.dropFirst(32))
+        var sSig = Data(data.dropFirst(ecPublicKey.hashAlgorithm.signatureLength/2))
         // If first bit is 1, add a 00 byte to mark it as positive for ASN1
         if sSig[0].leadingZeroBitCount == 0 {
             sSig = Data(count: 1) + sSig
@@ -65,7 +65,12 @@ public struct Signature {
         // total bytes is r + s + rLengthByte + sLengthByte byte + Integer marking bytes
         let tLengthByte = rLengthByte + sLengthByte + 4
         // 0x30 means sequence, 0x02 means Integer
-        asnSignature.append(contentsOf: [0x30, tLengthByte, 0x02, rLengthByte])
+        if tLengthByte > 127 {
+            asnSignature.append(contentsOf: [0x30, 0x81, tLengthByte])
+        } else {
+            asnSignature.append(contentsOf: [0x30, tLengthByte])
+        }
+        asnSignature.append(contentsOf: [0x02, rLengthByte])
         asnSignature.append(rSig)
         asnSignature.append(contentsOf: [0x02, sLengthByte])
         asnSignature.append(sSig)
@@ -73,7 +78,7 @@ public struct Signature {
         let hash = ecPublicKey.hashAlgorithm.digest(data: plaintext.data)
         #if os(Linux)
             let signatureBytes = [UInt8](asnSignature)
-            let verify = ECDSA_verify(0, hash, Int32(hash.count), signatureBytes, Int32(signatureBytes.count), publicKey.nativeKey)
+            let verify = ECDSA_verify(0, [UInt8](hash), Int32(hash.count), signatureBytes, Int32(signatureBytes.count), ecPublicKey.nativeKey)
             return verify == 1
         #else
             // MacOS, iOS ect.
