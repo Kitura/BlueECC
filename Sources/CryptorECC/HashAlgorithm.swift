@@ -30,6 +30,7 @@ struct HashAlgorithm {
     
     #if os(Linux)
     let signingAlgorithm: UnsafePointer<EVP_MD>
+    let curve: Int32
     #else
     let signingAlgorithm: SecKeyAlgorithm
     #endif
@@ -45,6 +46,7 @@ struct HashAlgorithm {
     static let sha256 = HashAlgorithm(hashLength: CC_LONG(SHA256_DIGEST_LENGTH),
                                       signatureLength: 64,
                                       signingAlgorithm: EVP_sha256(),
+                                      curve: NID_X9_62_prime256v1,
                                       engine: SHA256)
     #else
     /// Secure Hash Algorithm 2 256-bit
@@ -59,6 +61,7 @@ struct HashAlgorithm {
     static let sha384 = HashAlgorithm(hashLength: CC_LONG(SHA384_DIGEST_LENGTH),
                                       signatureLength: 96,
                                       signingAlgorithm: EVP_sha384(),
+                                      curve: NID_secp384r1,
                                       engine: SHA384)
     #else
     /// Secure Hash Algorithm 2 384-bit
@@ -73,6 +76,7 @@ struct HashAlgorithm {
     static let sha512 = HashAlgorithm(hashLength: CC_LONG(SHA512_DIGEST_LENGTH),
                                       signatureLength: 132,
                                       signingAlgorithm: EVP_sha512(),
+                                      curve: NID_secp521r1,
                                       engine: SHA512)
     #else
     /// Secure Hash Algorithm 512-bit

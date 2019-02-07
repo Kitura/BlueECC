@@ -45,30 +45,28 @@ public struct ECPrivateKey {
                 return nil
         }
         self.hashAlgorithm = hashAlgorithm
-        #if os(Linux)
-            guard let key = p8Key.data(using: .utf8) else {
+        guard case let ASN1.ASN1Element.bytes(data: privateOctest) = es[2] else {
+            return nil
+        }
+        let (octest, _) = ASN1.toASN1Element(data: privateOctest)
+        guard case let ASN1.ASN1Element.seq(elements: seq) = octest,
+            seq.count >= 3,
+            case let ASN1.ASN1Element.bytes(data: privateKeyData) = seq[1] else {
                 return nil
-            }
-            let bio = BIO_new(BIO_s_mem())
-            key.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> Void in
-                BIO_puts(bio, bytes)
-            }
-            let privateKey = PEM_read_bio_ECPrivateKey(bio, nil, nil, nil)
-            BIO_free(bio)
-            self.nativeKey = privateKey
+        }
+        #if os(Linux)
+            let bigNum = BN_new()
+            let privateKeyBytes = [UInt8](privateKeyData)
+            BN_bin2bn(privateKeyBytes, Int32(privateKeyBytes.count), bigNum)
+            let ecKey = EC_KEY_new_by_curve_name(hashAlgorithm.curve)
+            EC_KEY_set_private_key(ecKey, bigNum)
+            BN_free(bigNum)
+            self.nativeKey = ecKey
         #else
-            guard case let ASN1.ASN1Element.bytes(data: privateOctest) = es[2] else {
-                    return nil
-            }
-            let (octest, _) = ASN1.toASN1Element(data: privateOctest)
-            guard case let ASN1.ASN1Element.seq(elements: seq) = octest,
-                seq.count >= 3,
-                case let ASN1.ASN1Element.bytes(data: privateKeyData) = seq[1],
-                case let ASN1.ASN1Element.constructed(tag: _, elem: publicElement) = seq[2],
+            guard case let ASN1.ASN1Element.constructed(tag: _, elem: publicElement) = seq[2],
                 case let ASN1.ASN1Element.bytes(data: publicKeyData) = publicElement else {
                     return nil
             }
-        
             let keyData = publicKeyData.drop(while: { $0 == 0x00}) + privateKeyData
             var error: Unmanaged<CFError>? = nil
             guard let secKey = SecKeyCreateWithData(keyData as CFData,
