@@ -63,9 +63,17 @@ public struct ECPrivateKey {
             BN_free(bigNum)
             self.nativeKey = ecKey
         #else
-            guard case let ASN1.ASN1Element.constructed(tag: _, elem: publicElement) = seq[2],
-                case let ASN1.ASN1Element.bytes(data: publicKeyData) = publicElement else {
-                    return nil
+        let publicKeyData: Data
+            if case let ASN1.ASN1Element.constructed(tag: 1, elem: publicElement) = seq[2],
+                case let ASN1.ASN1Element.bytes(data: pubKeyData) = publicElement {
+                publicKeyData = pubKeyData
+            }
+            else if seq.count >= 4,
+                case let ASN1.ASN1Element.constructed(tag: 1, elem: publicElement) = seq[3],
+                case let ASN1.ASN1Element.bytes(data: pubKeyData) = publicElement {
+                publicKeyData = pubKeyData
+            } else {
+                return nil
             }
             let keyData = publicKeyData.drop(while: { $0 == 0x00}) + privateKeyData
             var error: Unmanaged<CFError>? = nil

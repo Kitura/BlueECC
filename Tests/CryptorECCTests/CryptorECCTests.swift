@@ -6,6 +6,7 @@ final class CryptorECCTests: XCTestCase {
     static var allTests = [
         ("test_ECDSACycle", test_PemECDSACycle),
         ("test_P8ECDSACycle", test_P8ECDSACycle),
+        ("test_AppleP8ECDSACycle", test_AppleP8ECDSACycle),
         ("test_PemECDSAVerify", test_PemECDSAVerify),
         ("test_P8ECDSAVerify", test_P8ECDSAVerify),
         ("test_Pem384ECDSAVerify", test_Pem384ECDSAVerify),
@@ -39,6 +40,20 @@ PyniQCWG+Agc3bdcgKU0RKApWYuBJKrZqyqLB2tTlgdtwcWSB0AEzVI8
 -----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEikc5m6C2xtDWeeAeT18WElO37zvF
 Oz8p4kAlhvgIHN23XIClNESgKVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
+-----END PUBLIC KEY-----
+"""
+    let appleECP8PrivateKey = """
+-----BEGIN PRIVATE KEY-----
+MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQg2sD+kukkA8GZUpmm
+jRa4fJ9Xa/JnIG4Hpi7tNO66+OGgCgYIKoZIzj0DAQehRANCAATZp0yt0btpR9kf
+ntp4oUUzTV0+eTELXxJxFvhnqmgwGAm1iVW132XLrdRG/ntlbQ1yzUuJkHtYBNve
+y+77Vzsd
+-----END PRIVATE KEY-----
+"""
+    let appleECP8PublicKey = """
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2adMrdG7aUfZH57aeKFFM01dPnkx
+C18ScRb4Z6poMBgJtYlVtd9ly63URv57ZW0Ncs1LiZB7WATb3svu+1c7HQ==
 -----END PUBLIC KEY-----
 """
     let ecPem384PrivateKey = """
@@ -131,6 +146,29 @@ Mw==
             return XCTFail()
         }
         guard let ecdsaPublicKey = ECPublicKey(pemKey: ecP8PublicKey) else {
+            return XCTFail()
+        }
+        let signature = Plaintext(data: unsignedData).signUsing(ecPrivateKey: ecdsaPrivateKey)
+        let verified = signature?.verify(plaintext: Plaintext(data: unsignedData), using: ecdsaPublicKey)
+        XCTAssert(verified == true)
+    }
+    
+    func test_AppleP8ECDSACycle() {
+        guard let exampleJWTHeader = try? JSONSerialization.data(withJSONObject: ["alg": "ES256", "typ": "JWT"]),
+            let exampleJWTClaims = try? JSONSerialization.data(withJSONObject: ["sub": "1234567890", "admin": true, "iat": 1516239022])
+            else {
+                return XCTFail("Failed to serialize JWT to JSON")
+        }
+        
+        let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
+        guard let unsignedData = unsignedJWT.data(using: .utf8) else {
+            return XCTFail("Failed to encode unsignedJWT to utf8")
+        }
+        
+        guard let ecdsaPrivateKey = ECPrivateKey(p8Key: appleECP8PrivateKey) else {
+            return XCTFail()
+        }
+        guard let ecdsaPublicKey = ECPublicKey(pemKey: appleECP8PublicKey) else {
             return XCTFail()
         }
         let signature = Plaintext(data: unsignedData).signUsing(ecPrivateKey: ecdsaPrivateKey)
