@@ -4,16 +4,16 @@ import XCTest
 @available(OSX 10.12, *)
 final class CryptorECCTests: XCTestCase {
     static var allTests = [
-        ("test_ECDSACycle", test_PemECDSACycle),
-        ("test_P8ECDSACycle", test_P8ECDSACycle),
-        ("test_AppleP8ECDSACycle", test_AppleP8ECDSACycle),
-        ("test_PemECDSAVerify", test_PemECDSAVerify),
-        ("test_P8ECDSAVerify", test_P8ECDSAVerify),
-        ("test_Pem384ECDSAVerify", test_Pem384ECDSAVerify),
-        ("test_Pem384ECDSACycle", test_Pem384ECDSACycle),
-        ("test_P8ES384Cycle", test_P8ES384Cycle),
-        ("test_Pem512ECDSAVerify", test_Pem512ECDSAVerify),
-        ("test_Pem512ECDSACycle", test_Pem512ECDSACycle),
+            ("test_ECDSACycle", test_PemECDSACycle),
+            ("test_P8ECDSACycle", test_P8ECDSACycle),
+            ("test_AppleP8ECDSACycle", test_AppleP8ECDSACycle),
+            ("test_PemECDSAVerify", test_PemECDSAVerify),
+            ("test_P8ECDSAVerify", test_P8ECDSAVerify),
+            ("test_Pem384ECDSAVerify", test_Pem384ECDSAVerify),
+            ("test_Pem384ECDSACycle", test_Pem384ECDSACycle),
+            ("test_P8ES384Cycle", test_P8ES384Cycle),
+            ("test_Pem512ECDSAVerify", test_Pem512ECDSAVerify),
+            ("test_Pem512ECDSACycle", test_Pem512ECDSACycle),
         ]
     
     let ecPemPrivateKey = """
@@ -182,11 +182,14 @@ Mw==
             let JWTSignature = Data(base64urlEncoded: "jGeUQXuf4WLuqhCHOdrIr2alE4JQyKQwkj-GbZIXQIpwrKLymEd41bka2PSIqRAA6H1A2kLuXhzwFw02qQdMhw") else {
                 return XCTFail("Failed to create JWT digest")
         }
-        
-        guard let ecdsaPublicKey = ECPublicKey(pemKey: ecPemPublicKey) else {
+        let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
+        let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
+        guard let ecdsaPublicKey = ECPublicKey(pemKey: ecPemPublicKey),
+            let sig = ECSignature(r: r, s: s)
+        else {
             return XCTFail()
         }
-        let verified = Signature(data: JWTSignature).verify(plaintext: Plaintext(data: JWTDigest), using: ecdsaPublicKey)
+        let verified = sig.verify(plaintext: Plaintext(data: JWTDigest), using: ecdsaPublicKey)
         XCTAssert(verified == true)
     }
     
@@ -196,12 +199,15 @@ Mw==
             let JWTSignature = Data(base64urlEncoded: "faLW3RiQtUG6U71gCrGEBY7AWNfYphygJQKoW8apoB4beX_-GFhkBwkcZATXKIL8UoFLHqmdKK97vO2Nv3OWDA") else {
                 return XCTFail("Failed to create JWT digest")
         }
-        
-        guard let ecdsaPublicKey = ECPublicKey(pemKey: ecPemPublicKey) else {
+        let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
+        let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
+        guard let ecdsaPublicKey = ECPublicKey(pemKey: ecPemPublicKey),
+            let sig = ECSignature(r: r, s: s)
+        else {
             return XCTFail()
         }
         
-        let verified = Signature(data: JWTSignature).verify(plaintext: Plaintext(data: JWTDigest), using: ecdsaPublicKey)
+        let verified = sig.verify(plaintext: Plaintext(data: JWTDigest), using: ecdsaPublicKey)
         XCTAssert(verified == true)
     }
     
@@ -257,11 +263,15 @@ Mw==
             let JWTSignature = Data(base64urlEncoded: "KOJv0MUveeDr5HQwbA4lX31FDJAP-46MIr5rdd1T_4ppSGIfCrN81uyqbs7pbnYta_-_f6EZe6O60BwiotmlE4qLBW_Db2XGOvU0R5z2RMH8rtaNxkKnorsh-ZHn40Xu") else {
                 return XCTFail("Failed to create JWT digest")
         }
-        
-        guard let ecdsaPublicKey = ECPublicKey(pemKey: ecPem384PublicKey) else {
+        let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
+        let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
+        guard let ecdsaPublicKey = ECPublicKey(pemKey: ecPem384PublicKey),
+            let sig = ECSignature(r: r, s: s)
+        else {
             return XCTFail()
         }
-        let verified = Signature(data: JWTSignature).verify(plaintext: Plaintext(data: JWTDigest), using: ecdsaPublicKey)
+        
+        let verified = sig.verify(plaintext: Plaintext(data: JWTDigest), using: ecdsaPublicKey)
         XCTAssert(verified == true)
     }
     
@@ -317,11 +327,14 @@ Mw==
             let JWTSignature = Data(base64urlEncoded: "Aem_D3xHktMbg_RAjvmpvLDcazsLKyU7xskklO54-G3FN2Z20u64zxH9t5raHLoMyfYZIaRhLMEqPVq8DkFS4Z0DAUhR3ZfuEEIvQzVY3S6cS_0WuLPstwHsURrEZqPs0afoxR0E8HSauv83hXmm9OOkTqUYstdFyDvKM6qEB6qktla0") else {
                 return XCTFail("Failed to create JWT digest")
         }
-        
-        guard let ecdsaPublicKey = ECPublicKey(pemKey: ecPem512PublicKey) else {
+        let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
+        let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
+        guard let ecdsaPublicKey = ECPublicKey(pemKey: ecPem512PublicKey),
+            let sig = ECSignature(r: r, s: s)
+        else {
             return XCTFail()
         }
-        let verified = Signature(data: JWTSignature).verify(plaintext: Plaintext(data: JWTDigest), using: ecdsaPublicKey)
+        let verified = sig.verify(plaintext: Plaintext(data: JWTDigest), using: ecdsaPublicKey)
         XCTAssert(verified == true)
     }
     

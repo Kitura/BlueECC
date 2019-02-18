@@ -36,25 +36,35 @@ public struct Plaintext {
         self.data = data
     }
     
-    public func signUsing(ecPrivateKey: ECPrivateKey) -> Signature? {
+    public func signUsing(ecPrivateKey: ECPrivateKey) -> ECSignature? {
         
         let signature: Data
         #if os(Linux)
             let md_ctx = EVP_MD_CTX_new_wrapper()
-        
             defer {
                 EVP_MD_CTX_free_wrapper(md_ctx)
             }
             let evp_key = EVP_PKEY_new()
-            let _ = EVP_PKEY_set1_EC_KEY(evp_key, ecPrivateKey.nativeKey)
+            guard EVP_PKEY_set1_EC_KEY(evp_key, .make(optional: ecPrivateKey.nativeKey)) == 1 else {
+                return nil
+            }
             var pkey_ctx = EVP_PKEY_CTX_new(evp_key, nil)
-            EVP_DigestSignInit(md_ctx, &pkey_ctx, ecPrivateKey.hashAlgorithm.signingAlgorithm, nil, evp_key)
+            EVP_DigestSignInit(md_ctx, &pkey_ctx, .make(optional: ecPrivateKey.hashAlgorithm.signingAlgorithm), nil, evp_key)
+        
             _ = self.data.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in
                 return EVP_DigestUpdate(md_ctx, message, self.data.count)
             })
+        
             var sig_len: Int = 0
             EVP_DigestSignFinal(md_ctx, nil, &sig_len)
             let sig = UnsafeMutablePointer<UInt8>.allocate(capacity: sig_len)
+            defer {
+                #if swift(>=4.1)
+                    sig.deallocate()
+                #else
+                    sig.deallocate(capacity: sig_len)
+                #endif
+            }
             let _ = EVP_DigestSignFinal(md_ctx, sig, &sig_len)
             signature = Data(bytes: sig, count: sig_len)
         #else
@@ -72,33 +82,6 @@ public struct Plaintext {
             }
             signature = cfSignature as Data
         #endif
-        // Parse ASN into just r,s data as defined in:
-        // https://tools.ietf.org/html/rfc7518#section-3.4
-        let (asnSig, _) = ASN1.toASN1Element(data: signature)
-        guard case let ASN1.ASN1Element.seq(elements: seq) = asnSig,
-            seq.count >= 2,
-            case let ASN1.ASN1Element.bytes(data: rData) = seq[0],
-            case let ASN1.ASN1Element.bytes(data: sData) = seq[1]
-            else {
-                print("Failed to decode cfSignature ASN1")
-                return nil
-        }
-        // ASN adds 00 bytes in front of negative Int to mark it as positive.
-        // These must be removed to make r,a a valid EC signature
-        let trimmedRData: Data
-        let trimmedSData: Data
-        let rExtra = rData.count - ecPrivateKey.hashAlgorithm.signatureLength/2
-        if rExtra < 0 {
-            trimmedRData = Data(count: 1) + rData
-        } else {
-            trimmedRData = rData.dropFirst(rExtra)
-        }
-        let sExtra = sData.count - ecPrivateKey.hashAlgorithm.signatureLength/2
-        if sExtra < 0 {
-            trimmedSData = Data(count: 1) + sData
-        } else {
-            trimmedSData = sData.dropFirst(sExtra)
-        }
-        return Signature(data: trimmedRData + trimmedSData)
+        return ECSignature(asn1: signature)
     }
 }
