@@ -1,10 +1,15 @@
 import XCTest
 @testable import CryptorECC
+#if os(Linux)
+import Glibc
+#else
+import Darwin
+#endif
 
 @available(OSX 10.12, *)
 final class CryptorECCTests: XCTestCase {
     static var allTests = [
-            ("test_ECDSACycle", test_PemECDSACycle),
+            ("test_PemECDSACycle", test_PemECDSACycle),
             ("test_P8ECDSACycle", test_P8ECDSACycle),
             ("test_AppleP8ECDSACycle", test_AppleP8ECDSACycle),
             ("test_PemECDSAVerify", test_PemECDSAVerify),
@@ -267,10 +272,9 @@ Mw==
         let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
         guard let ecdsaPublicKey = ECPublicKey(pemKey: ecPem384PublicKey),
             let sig = ECSignature(r: r, s: s)
-        else {
-            return XCTFail()
+            else {
+                return XCTFail()
         }
-        
         let verified = sig.verify(plaintext: Plaintext(data: JWTDigest), using: ecdsaPublicKey)
         XCTAssert(verified == true)
     }

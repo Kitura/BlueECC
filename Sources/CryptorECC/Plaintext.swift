@@ -21,14 +21,23 @@ import CommonCrypto
 import OpenSSL
 #endif
 
+/// A container for data that will be signed or encrypted.
 @available(OSX 10.12, *)
 public struct Plaintext {
+    /// The unchanged data
     public let data: Data
     
+    /// Initialize a `Plaintext` instance containing the provided `Data`.
+    /// - Parameter data: The data to be stored in the plaintext container.
+    /// - Returns: A new instance of `Plaintext`.
     public init(data: Data) {
         self.data = data
     }
     
+    /// Initialize a `Plaintext` instance by encoding the provided `String`.
+    /// - Parameter string: The string to be encoded to data.
+    /// - Parameter encoding: The encoding to use the encode the String.
+    /// - Returns: A new instance of `Plaintext`.
     public init?(string: String, encoding: String.Encoding = .utf8) {
         guard let data = string.data(using: encoding) else {
             return nil
@@ -36,19 +45,24 @@ public struct Plaintext {
         self.data = data
     }
     
+    /// Sign the plaintext data using the provided `ECPrivateKey`.
+    /// The signing algorithm used is determined based on the private key's elliptic curve.
+    /// - Parameter ecPrivateKey: The Elliptic curve private key.
+    /// - Returns: An ECSignature or nil on failure.
     public func signUsing(ecPrivateKey: ECPrivateKey) -> ECSignature? {
-        
         let signature: Data
         #if os(Linux)
             let md_ctx = EVP_MD_CTX_new_wrapper()
-            defer {
-                EVP_MD_CTX_free_wrapper(md_ctx)
-            }
             let evp_key = EVP_PKEY_new()
             guard EVP_PKEY_set1_EC_KEY(evp_key, .make(optional: ecPrivateKey.nativeKey)) == 1 else {
                 return nil
             }
             var pkey_ctx = EVP_PKEY_CTX_new(evp_key, nil)
+            defer {
+                EVP_PKEY_free(evp_key)
+                EVP_MD_CTX_free_wrapper(md_ctx)
+            }
+        
             EVP_DigestSignInit(md_ctx, &pkey_ctx, .make(optional: ecPrivateKey.hashAlgorithm.signingAlgorithm), nil, evp_key)
         
             _ = self.data.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in

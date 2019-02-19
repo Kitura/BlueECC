@@ -1,7 +1,7 @@
 import XCTest
 
-import BlueECCTests
+import CryptorECCTests
 
 var tests = [XCTestCaseEntry]()
-tests += BlueECCTests.allTests()
+tests += CryptorECCTests.allTests()
 XCTMain(tests)
