@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>ECPrivateKey Class Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Class/ECPrivateKey" class="dashAnchor"></a>
+    <a title="ECPrivateKey Class Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html"> Docs</a> (89% documented)</p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html"> Reference</a>
+        <img id="carat" src="../img/carat.png" />
+        ECPrivateKey Class Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/ECPrivateKey.html">ECPrivateKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ECPublicKey.html">ECPublicKey</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/ECSignature.html">ECSignature</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Plaintext.html">Plaintext</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>ECPrivateKey</h1>
+              <div class="declaration">
+                <div class="language">
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">ECPrivateKey</span></code></pre>
+
+                </div>
+              </div>
+            <p>A class representing an Elliptic curve private key.</p>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Alias/NativeKey" class="dashAnchor"></a>
+                    <a class="token" href="#/">NativeKey</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC12ECPrivateKeyC06NativeD0a"></a>
+                    <a name="//apple_ref/swift/Alias/NativeKey" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC12ECPrivateKeyC06NativeD0a">NativeKey</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">typealias</span> <span class="kt"><a href="../Classes/ECPrivateKey.html#/NativeKey">NativeKey</a></span> <span class="o">=</span> <span class="kt">SecKey</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC12ECPrivateKeyC02p8D0ACSgSS_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(p8Key:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC12ECPrivateKeyC02p8D0ACSgSS_tcfc">init(p8Key:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initialize an ECPrivateKey from a <code>.p8</code> file format.</p>
+<h3 id='usage-example' class='heading'>Usage Example:</h3>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">privateKeyString</span> <span class="o">=</span> <span class="s">"""
+-----BEGIN PRIVATE KEY-----
+MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQg2sD+kukkA8GZUpmm
+jRa4fJ9Xa/JnIG4Hpi7tNO66+OGgCgYIKoZIzj0DAQehRANCAATZp0yt0btpR9kf
+ntp4oUUzTV0+eTELXxJxFvhnqmgwGAm1iVW132XLrdRG/ntlbQ1yzUuJkHtYBNve
+y+77Vzsd
+-----END PRIVATE KEY-----
+"""</span>
+<span class="k">let</span> <span class="nv">p8Key</span> <span class="o">=</span> <span class="kt">ECPrivateKey</span><span class="p">(</span><span class="nv">p8Key</span><span class="p">:</span> <span class="n">privateKeyString</span><span class="p">)</span>
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">?(</span><span class="nv">p8Key</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC12ECPrivateKeyC03pemD0ACSgSS_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(pemKey:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC12ECPrivateKeyC03pemD0ACSgSS_tcfc">init(pemKey:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initialize an ECPrivateKey from a <code>.pem</code> file format.</p>
+<h3 id='usage-example' class='heading'>Usage Example:</h3>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">privateKeyString</span> <span class="o">=</span> <span class="s">"""
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIJX+87WJ7Gh19sohyZnhxZeXYNOcuGv4Q+8MLge4UkaZoAoGCCqGSM49
+AwEHoUQDQgAEikc5m6C2xtDWeeAeT18WElO37zvFOz8p4kAlhvgIHN23XIClNESg
+KVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
+-----END EC PRIVATE KEY-----
+"""</span>
+<span class="k">let</span> <span class="nv">pemKey</span> <span class="o">=</span> <span class="kt">ECPrivateKey</span><span class="p">(</span><span class="nv">pemKey</span><span class="p">:</span> <span class="n">privateKeyString</span><span class="p">)</span>
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">?(</span><span class="nv">pemKey</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2019 <a class="link" href="" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2019-02-19)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>ECSignature Structure Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Struct/ECSignature" class="dashAnchor"></a>
+    <a title="ECSignature Structure Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html"> Docs</a> (89% documented)</p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html"> Reference</a>
+        <img id="carat" src="../img/carat.png" />
+        ECSignature Structure Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/ECPrivateKey.html">ECPrivateKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ECPublicKey.html">ECPublicKey</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/ECSignature.html">ECSignature</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Plaintext.html">Plaintext</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>ECSignature</h1>
+              <div class="declaration">
+                <div class="language">
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ECSignature</span></code></pre>
+
+                </div>
+              </div>
+            <p>The signature produced by applying Elliptic Curve Digital Signature Algorithm
+to some <code><a href="../Structs/Plaintext.html">Plaintext</a></code> data. It consist of two binary unsigned ints r and s.</p>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC11ECSignatureV1r10Foundation4DataVvp"></a>
+                    <a name="//apple_ref/swift/Property/r" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC11ECSignatureV1r10Foundation4DataVvp">r</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The r value of the signature.
+Will be 32 bytes of data for SHA256, 48 bytes for SHA384 or 66 bytes for SHA 512.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">r</span><span class="p">:</span> <span class="kt">Data</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC11ECSignatureV1s10Foundation4DataVvp"></a>
+                    <a name="//apple_ref/swift/Property/s" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC11ECSignatureV1s10Foundation4DataVvp">s</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The s value of the signature.
+Will be 32 bytes of data for SHA256, 48 bytes for SHA384 or 66 bytes for SHA 512.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">s</span><span class="p">:</span> <span class="kt">Data</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC11ECSignatureV4asn110Foundation4DataVvp"></a>
+                    <a name="//apple_ref/swift/Property/asn1" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC11ECSignatureV4asn110Foundation4DataVvp">asn1</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The r and a values of the signature encoded into an ASN1 sequence.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">asn1</span><span class="p">:</span> <span class="kt">Data</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC11ECSignatureV1r1sACSg10Foundation4DataV_AItcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(r:s:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC11ECSignatureV1r1sACSg10Foundation4DataV_AItcfc">init(r:s:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initialise an ECSignature by providing the r and s values.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">?(</span><span class="nv">r</span><span class="p">:</span> <span class="kt">Data</span><span class="p">,</span> <span class="nv">s</span><span class="p">:</span> <span class="kt">Data</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>r</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The r value of the signature as raw data.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>s</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The s value of the signature as raw data.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>A new instance of <code>ECSignature</code>.</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC11ECSignatureV4asn1ACSg10Foundation4DataV_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(asn1:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC11ECSignatureV4asn1ACSg10Foundation4DataV_tcfc">init(asn1:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initialize an ECSignature by providing an ASN1 encoded sequence containing the r and s values.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">?(</span><span class="nv">asn1</span><span class="p">:</span> <span class="kt">Data</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>asn1</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The r and s values of the signature encoded as an ASN1 sequence.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>A new instance of <code>ECSignature</code>.</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC11ECSignatureV6verify9plaintext5usingSbAA9PlaintextV_AA11ECPublicKeyCtF"></a>
+                    <a name="//apple_ref/swift/Method/verify(plaintext:using:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC11ECSignatureV6verify9plaintext5usingSbAA9PlaintextV_AA11ECPublicKeyCtF">verify(plaintext:using:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Verify the signature using the given public key.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">verify</span><span class="p">(</span><span class="nv">plaintext</span><span class="p">:</span> <span class="kt"><a href="../Structs/Plaintext.html">Plaintext</a></span><span class="p">,</span> <span class="n">using</span> <span class="nv">ecPublicKey</span><span class="p">:</span> <span class="kt"><a href="../Classes/ECPublicKey.html">ECPublicKey</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>plaintext</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The r and s values of the signature encoded as an ASN1 sequence.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if the plaintext is valid for the provided signature. false otherwise.</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2019 <a class="link" href="" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2019-02-19)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>

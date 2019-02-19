@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>  Reference</title>
+    <link rel="stylesheet" type="text/css" href="css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="js/jquery.min.js" defer></script>
+    <script src="js/jazzy.js" defer></script>
+    
+  </head>
+  <body>
+    <a title="  Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="index.html"> Docs</a> (89% documented)</p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="index.html"> Reference</a>
+        <img id="carat" src="img/carat.png" />
+          Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Classes/ECPrivateKey.html">ECPrivateKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/ECPublicKey.html">ECPublicKey</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Structs/ECSignature.html">ECSignature</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/Plaintext.html">Plaintext</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            
+            <p align="center">
+    <a href="http://kitura.io/">
+        <img src="https://raw.githubusercontent.com/IBM-Swift/Kitura/master/Sources/Kitura/resources/kitura-bird.svg?sanitize=true" height="100" alt="Kitura">
+    </a>
+</p>
+
+<p align="center">
+    <a href="https://ibm-swift.github.io/BlueECC/index.html">
+    <img src="https://img.shields.io/badge/apidoc-BlueECC-1FBCE4.svg?style=flat" alt="APIDoc">
+    </a>
+    <a href="https://travis-ci.org/IBM-Swift/Kitura-BlueECC">
+    <img src="https://travis-ci.org/IBM-Swift/Kitura-BlueECC.svg?branch=master" alt="Build Status - Master">
+    </a>
+    <img src="https://img.shields.io/badge/os-macOS-green.svg?style=flat" alt="macOS">
+    <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux">
+    <img src="https://img.shields.io/badge/license-Apache2-blue.svg?style=flat" alt="Apache 2">
+    <a href="http://swift-at-ibm-slack.mybluemix.net/">
+    <img src="http://swift-at-ibm-slack.mybluemix.net/badge.svg" alt="Slack Status">
+    </a>
+</p>
+<h1 id='blueecc' class='heading'>BlueECC</h1>
+
+<p>A cross platform swift implementation of Elliptic Curve Digital Signature Algorithm (ECDSA).</p>
+<h2 id='usage' class='heading'>Usage</h2>
+<h4 id='add-dependencies' class='heading'>Add dependencies</h4>
+
+<p>Add the <code>BlueECC</code> package to the dependencies within your application’s <code>Package.swift</code> file. Substitute <code>&quot;x.x.x&quot;</code> with the latest <code>BlueECC</code> <a href="https://github.com/IBM-Swift/BlueECC/releases">release</a>.</p>
+<pre class="highlight swift"><code><span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/IBM-Swift/BlueECC.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"x.x.x"</span><span class="p">)</span>
+</code></pre>
+
+<p>Add <code>CryptorECC</code> to your target&rsquo;s dependencies:</p>
+<pre class="highlight swift"><code><span class="o">.</span><span class="nf">target</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"example"</span><span class="p">,</span> <span class="nv">dependencies</span><span class="p">:</span> <span class="p">[</span><span class="s">"CryptorECC"</span><span class="p">]),</span>
+</code></pre>
+<h4 id='import-package' class='heading'>Import package</h4>
+<pre class="highlight swift"><code><span class="kd">import</span> <span class="kt">CryptorECC</span>
+</code></pre>
+<h2 id='api-documentation' class='heading'>API Documentation</h2>
+<h4 id='elliptic-curve-public-and-private-key' class='heading'>Elliptic curve public and private key</h4>
+
+<p>First, generate your <code>p-256</code> EC private key either as a <code>.p8</code> file through apple <a href="https://developer.apple.com/account/ios/authkey/">authkey</a>:</p>
+<pre class="highlight swift"><code><span class="o">-----</span><span class="kt">BEGIN</span> <span class="kt">PRIVATE</span> <span class="kt">KEY</span><span class="o">-----</span>
+<span class="kt">MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQglf7ztYnsaHX2yiHJ</span>
+<span class="n">meHFl5dg05y4a</span><span class="o">/</span><span class="n">hD7wwuB7hSRpmhRANCAASKRzmboLbG0NZ54B5PXxYSU7fvO8U7</span>
+<span class="kt">PyniQCWG</span><span class="o">+</span><span class="kt">Agc3bdcgKU0RKApWYuBJKrZqyqLB2tTlgdtwcWSB0AEzVI8</span>
+<span class="o">-----</span><span class="kt">END</span> <span class="kt">PRIVATE</span> <span class="kt">KEY</span><span class="o">-----</span>
+</code></pre>
+
+<p>Alternatively, use OpenSSL to generate a <code>.pem</code> file:</p>
+<pre class="highlight plaintext"><code>// p-256
+openssl ecparam -name prime256v1 -genkey -noout -out key.pem
+// p-384
+openssl ecparam -name secp384r1 -genkey -noout -out key.pem
+// p-521
+openssl ecparam -name secp521r1 -genkey -noout -out key.pem
+</code></pre>
+<pre class="highlight plaintext"><code>-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIJX+87WJ7Gh19sohyZnhxZeXYNOcuGv4Q+8MLge4UkaZoAoGCCqGSM49
+AwEHoUQDQgAEikc5m6C2xtDWeeAeT18WElO37zvFOz8p4kAlhvgIHN23XIClNESg
+KVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
+-----END EC PRIVATE KEY-----
+</code></pre>
+
+<p>Use openSSL to generate an EC public key <code>.pem</code> file from any EC private key:</p>
+<pre class="highlight plaintext"><code>openssl ec -in key.pem -pubout -out public.pem
+</code></pre>
+<pre class="highlight plaintext"><code>-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEikc5m6C2xtDWeeAeT18WElO37zvF
+Oz8p4kAlhvgIHN23XIClNESgKVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
+-----END PUBLIC KEY-----
+</code></pre>
+
+<p>Then create your <code><a href="Classes/ECPublicKey.html">ECPublicKey</a></code> and <code><a href="Classes/ECPrivateKey.html">ECPrivateKey</a></code>:</p>
+<pre class="highlight swift"><code><span class="k">guard</span> <span class="k">let</span> <span class="nv">ecdsaPrivateKey</span> <span class="o">=</span> <span class="kt">ECPrivateKey</span><span class="p">(</span><span class="nv">pemKey</span><span class="p">:</span> <span class="n">ecPrivateKey</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="nf">print</span><span class="p">(</span><span class="s">"Private Key creation failed"</span><span class="p">)</span>
+    <span class="k">return</span>
+<span class="p">}</span>
+<span class="k">guard</span> <span class="k">let</span> <span class="nv">ecdsaPublicKey</span> <span class="o">=</span> <span class="kt">ECPublicKey</span><span class="p">(</span><span class="nv">pemKey</span><span class="p">:</span> <span class="n">ecPublicKey</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="nf">print</span><span class="p">(</span><span class="s">"Public Key creation failed"</span><span class="p">)</span>
+    <span class="k">return</span>
+<span class="p">}</span>
+</code></pre>
+<h4 id='signing-the-plaintext' class='heading'>Signing the Plaintext</h4>
+
+<p>Initialise a plaintext object that you wish to sign:</p>
+<pre class="highlight swift"><code><span class="k">guard</span> <span class="k">let</span> <span class="nv">message</span> <span class="o">=</span> <span class="kt">Plaintext</span><span class="p">(</span><span class="nv">string</span><span class="p">:</span> <span class="s">"Hello World"</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="nf">print</span><span class="p">(</span><span class="s">"failed to create plaintext"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>Sign the plaintext using the private key:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">signature</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="nf">signUsing</span><span class="p">(</span><span class="nv">ecPrivateKey</span><span class="p">:</span> <span class="n">ecdsaPrivateKey</span><span class="p">)</span>
+</code></pre>
+<h4 id='verifying-the-signature' class='heading'>Verifying the signature</h4>
+
+<p>Use the public key to verify the signature for the plaintext:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">verified</span> <span class="o">=</span> <span class="n">signature</span><span class="o">.</span><span class="nf">verify</span><span class="p">(</span><span class="nv">plaintext</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="n">ecdsaPublicKey</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">verified</span> <span class="p">{</span>
+    <span class="nf">print</span><span class="p">(</span><span class="s">"Signature is valid for provided plaintext"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>For more information visit our <a href="https://ibm-swift.github.io/BlueECC/index.html">API reference</a>.</p>
+<h2 id='community' class='heading'>Community</h2>
+
+<p>We love to talk server-side Swift, and Kitura. Join our <a href="http://swift-at-ibm-slack.mybluemix.net/">Slack</a> to meet the team!</p>
+<h2 id='license' class='heading'>License</h2>
+
+<p>This library is licensed under Apache 2.0. Full license text is available in <a href="https://github.com/IBM-Swift/BlueECC/blob/master/LICENSE.txt">LICENSE</a>.</p>
+
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2019 <a class="link" href="" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2019-02-19)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>

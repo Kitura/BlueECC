@@ -19,7 +19,7 @@ import Foundation
 import CommonCrypto
 #elseif os(Linux)
 import OpenSSL
-public typealias CC_LONG = size_t
+typealias CC_LONG = size_t
 #endif
 
 @available(OSX 10.12, *)

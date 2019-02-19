@@ -1,0 +1,19 @@
+{
+  "warnings": [
+    {
+      "file": "/Users/andrewlees/BlueECC/Sources/CryptorECC/ECPrivateKey.swift",
+      "line": 29,
+      "symbol": "ECPrivateKey.NativeKey",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/andrewlees/BlueECC/Sources/CryptorECC/ECPublicKey.swift",
+      "line": 29,
+      "symbol": "ECPublicKey.NativeKey",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    }
+  ],
+  "source_directory": "/Users/andrewlees/BlueECC"
+}

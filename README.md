@@ -67,7 +67,7 @@ openssl ecparam -name secp384r1 -genkey -noout -out key.pem
 // p-521
 openssl ecparam -name secp521r1 -genkey -noout -out key.pem
 ```
-```swift
+```
 -----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIJX+87WJ7Gh19sohyZnhxZeXYNOcuGv4Q+8MLge4UkaZoAoGCCqGSM49
 AwEHoUQDQgAEikc5m6C2xtDWeeAeT18WElO37zvFOz8p4kAlhvgIHN23XIClNESg
@@ -78,7 +78,7 @@ Use openSSL to generate an EC public key `.pem` file from any EC private key:
 ```
 openssl ec -in key.pem -pubout -out public.pem
 ```
-```swift
+```
 -----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEikc5m6C2xtDWeeAeT18WElO37zvF
 Oz8p4kAlhvgIHN23XIClNESgKVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
@@ -101,7 +101,7 @@ guard let ecdsaPublicKey = ECPublicKey(pemKey: ecPublicKey) else {
 
 Initialise a plaintext object that you wish to sign:
 ```swift
-guard let message = Plaintext("Hello World") else {
+guard let message = Plaintext(string: "Hello World") else {
     print("failed to create plaintext")
 }
 ```
