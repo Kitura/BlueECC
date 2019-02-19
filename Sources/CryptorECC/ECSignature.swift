@@ -17,11 +17,8 @@ import Foundation
 
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 import CommonCrypto
-import Darwin
-
 #elseif os(Linux)
 import OpenSSL
-import Glibc
 #endif
 
 /// The signature produced by applying Elliptic Curve Digital Signature Algorithm
@@ -43,10 +40,8 @@ public struct ECSignature {
     /// - Parameter r: The r value of the signature as raw data.
     /// - Parameter s: The s value of the signature as raw data.
     /// - Returns: A new instance of `ECSignature`.
-    public init?(r: Data, s: Data) {
-        guard let asn1 = ECSignature.rsSigToASN1(r: r, s: s) else {
-            return nil
-        }
+    public init(r: Data, s: Data) throws {
+        let asn1 = try ECSignature.rsSigToASN1(r: r, s: s)
         self.r = r
         self.s = s
         self.asn1 = asn1
@@ -55,23 +50,29 @@ public struct ECSignature {
     /// Initialize an ECSignature by providing an ASN1 encoded sequence containing the r and s values.
     /// - Parameter asn1: The r and s values of the signature encoded as an ASN1 sequence.
     /// - Returns: A new instance of `ECSignature`.
-    public init?(asn1: Data) {
+    public init(asn1: Data) throws {
         self.asn1 = asn1
-        guard let (r,s) = ECSignature.asn1ToRSSig(asn1: asn1) else {
-            return nil
-        }
+        let (r,s) = try ECSignature.asn1ToRSSig(asn1: asn1)
         self.r = r
         self.s = s
     }
 
-    /// Verify the signature using the given public key.
-    /// - Parameter plaintext: The r and s values of the signature encoded as an ASN1 sequence.
+    /// Verify the signature for a given String using the provided public key.
+    /// - Parameter plaintext: The String that was originally signed to produce the signature.
     /// - Parameter using ecPublicKey: The ECPublicKey that will be used to verify the plaintext.
-    /// - Returns: true if the plaintext is valid for the provided signature. false otherwise.
-    public func verify(plaintext: Plaintext, using ecPublicKey: ECPublicKey) -> Bool {
+    /// - Returns: true if the plaintext is valid for the provided signature. Otherwise it returns false.
+    public func verify(plaintext: String, using ecPublicKey: ECPublicKey) -> Bool {
+        let plainTextData = Data(plaintext.utf8)
+        return verify(plaintext: plainTextData, using: ecPublicKey)
+    }
+        
+    /// Verify the signature for the given Data using the provided public key.
+    /// - Parameter plaintext: The Data that was originally signed to produce the signature.
+    /// - Parameter using ecPublicKey: The ECPublicKey that will be used to verify the plaintext.
+    /// - Returns: true if the plaintext is valid for the provided signature. Otherwise it returns false.
+    public func verify(plaintext: Data, using ecPublicKey: ECPublicKey) -> Bool {
         
         #if os(Linux)
-            let signatureBytes = [UInt8](self.asn1)
             let md_ctx = EVP_MD_CTX_new_wrapper()
             let evp_key = EVP_PKEY_new()
             EVP_PKEY_set1_EC_KEY(evp_key, .make(optional: ecPublicKey.nativeKey))
@@ -82,8 +83,8 @@ public struct ECSignature {
             }
         
             EVP_DigestVerifyInit(md_ctx, &pkey_ctx, .make(optional: ecPublicKey.hashAlgorithm.signingAlgorithm), nil, evp_key)
-            let _ = plaintext.data.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in
-                return EVP_DigestUpdate(md_ctx, message, plaintext.data.count)
+            let _ = plaintext.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in
+                return EVP_DigestUpdate(md_ctx, message, plaintext.count)
             })
             let rc = self.asn1.withUnsafeBytes({ (sig: UnsafePointer<UInt8>) -> Int32 in
                 return EVP_DigestVerifyFinal(md_ctx, sig, self.asn1.count)
@@ -92,7 +93,7 @@ public struct ECSignature {
             return rc == 1
         #else
             // MacOS, iOS ect.
-            let hash = ecPublicKey.hashAlgorithm.digest(data: plaintext.data)
+            let hash = ecPublicKey.hashAlgorithm.digest(data: plaintext)
 
             // Memory storage for error from SecKeyVerifySignature
             var error: Unmanaged<CFError>? = nil
@@ -110,11 +111,10 @@ public struct ECSignature {
         #endif
     }
 
-    static func rsSigToASN1(r: Data, s: Data) -> Data? {
+    static func rsSigToASN1(r: Data, s: Data) throws -> Data {
         
         guard r.count == s.count, r.count == 32 || r.count == 48 || r.count == 66 else {
-            // r and s are not valid lengths
-            return nil
+            throw ECError(reason: "Signature r and s values were not the correct length")
         }
         // Convert r,s signature to ASN1 for SecKeyVerifySignature
         var asnSignature = Data()
@@ -154,7 +154,7 @@ public struct ECSignature {
         return asnSignature
     }
 
-    static func asn1ToRSSig(asn1: Data) -> (Data, Data)? {
+    static func asn1ToRSSig(asn1: Data) throws -> (Data, Data) {
         
         let signatureLength: Int
         if asn1.count < 96 {
@@ -172,9 +172,8 @@ public struct ECSignature {
             seq.count >= 2,
             case let ASN1.ASN1Element.bytes(data: rData) = seq[0],
             case let ASN1.ASN1Element.bytes(data: sData) = seq[1]
-            else {
-                print("Failed to decode cfSignature ASN1")
-                return nil
+        else {
+            throw ECError(reason: "Failed to decode cfSignature ASN1")
         }
         // ASN adds 00 bytes in front of negative Int to mark it as positive.
         // These must be removed to make r,a a valid EC signature

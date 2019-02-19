@@ -41,12 +41,12 @@ public class ECPublicKey {
      Oz8p4kAlhvgIHN23XIClNESgKVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
      -----END PUBLIC KEY-----
      """
-     let pemKey = ECPublicKey(pemKey: publicKeyString)
+     let pemKey = try ECPublicKey(pemKey: publicKeyString)
      ```
      */
-    public init?(pemKey: String) {
+    public init(pemKey: String) throws {
         guard let asn1Key = ASN1.pemToASN1(key: pemKey) else {
-            return nil
+            throw ECError(reason: "Failed to decode pem to ASN1")
         }
         let (result, _) = ASN1.toASN1Element(data: asn1Key)
         guard case let ASN1.ASN1Element.seq(elements: seq) = result,
@@ -57,13 +57,15 @@ public class ECPublicKey {
             let hashAlgorithm = HashAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID),
             case let ASN1.ASN1Element.bytes(data: publicKeyData) = seq[1]
         else {
-                return nil
+            throw ECError(reason: "Failed read public key bytes from ASN1")
         }
         self.hashAlgorithm = hashAlgorithm
+        
         #if os(Linux)
             let bigNum = BN_new()
-            let publicKeyBytes = [UInt8](publicKeyData)
-            BN_bin2bn(publicKeyBytes, Int32(publicKeyBytes.count), bigNum)
+            publicKeyData.withUnsafeBytes({ (publicKeyBytes: UnsafePointer<UInt8>) -> Void in
+                BN_bin2bn(publicKeyBytes, Int32(publicKeyData.count), bigNum)
+            })
             let ecKey = EC_KEY_new_by_curve_name(hashAlgorithm.curve)
             let ecGroup = EC_KEY_get0_group(ecKey)
             let ecPoint = EC_POINT_new(ecGroup)
@@ -78,9 +80,11 @@ public class ECPublicKey {
             guard let secKey = SecKeyCreateWithData(keyData as CFData,
                                                     [kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyClass: kSecAttrKeyClassPublic, kSecAttrKeySizeInBits: 256] as CFDictionary, &error)
                 else {
-                    let thrownError = error?.takeRetainedValue()
-                    print(thrownError as Any)
-                    return nil
+                    if let thrownError = error?.takeRetainedValue() {
+                        throw thrownError
+                    } else {
+                        throw ECError(reason: "SecKeyCreateWithData failed without returning an error")
+                    }
             }
             self.nativeKey = secKey
         #endif

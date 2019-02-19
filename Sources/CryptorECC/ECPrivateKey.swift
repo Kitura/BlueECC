@@ -43,12 +43,12 @@ public class ECPrivateKey {
      y+77Vzsd
      -----END PRIVATE KEY-----
      """
-     let p8Key = ECPrivateKey(p8Key: privateKeyString)
+     let p8Key = try ECPrivateKey(p8Key: privateKeyString)
      ```
      */
-    public init?(p8Key: String) {
+    public init(p8Key: String) throws {
         guard let asn1Key = ASN1.pemToASN1(key: p8Key) else {
-            return nil
+            throw ECError(reason: "Failed to decode pem to ASN1")
         }
         let (result, _) = ASN1.toASN1Element(data: asn1Key)
         
@@ -58,17 +58,17 @@ public class ECPrivateKey {
             ids.count > 1,
             case let ASN1.ASN1Element.bytes(data: privateKeyID) = ids[1],
             let hashAlgorithm = HashAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID) else {
-                return nil
+                throw ECError(reason: "Failed to identify EC algorithm from ASN1")
         }
         self.hashAlgorithm = hashAlgorithm
         guard case let ASN1.ASN1Element.bytes(data: privateOctest) = es[2] else {
-            return nil
+            throw ECError(reason: "Failed to read privateKeyData from ASN1")
         }
         let (octest, _) = ASN1.toASN1Element(data: privateOctest)
         guard case let ASN1.ASN1Element.seq(elements: seq) = octest,
             seq.count >= 3,
             case let ASN1.ASN1Element.bytes(data: privateKeyData) = seq[1] else {
-                return nil
+                throw ECError(reason: "Failed to read privateKeyData from ASN1")
         }
         #if os(Linux)
         self.nativeKey =  ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData, hashAlgorithm: hashAlgorithm)
@@ -83,16 +83,18 @@ public class ECPrivateKey {
                 case let ASN1.ASN1Element.bytes(data: pubKeyData) = publicElement {
                 publicKeyData = pubKeyData
             } else {
-                return nil
+                throw ECError(reason: "Failed to read publicKeyData from ASN1")
             }
             let keyData = publicKeyData.drop(while: { $0 == 0x00}) + privateKeyData
             var error: Unmanaged<CFError>? = nil
             guard let secKey = SecKeyCreateWithData(keyData as CFData,
                                                     [kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyClass: kSecAttrKeyClassPrivate, kSecAttrKeySizeInBits: 256] as CFDictionary, &error)
                 else {
-                    let thrownError = error?.takeRetainedValue()
-                    print(thrownError as Any)
-                    return nil
+                    if let thrownError = error?.takeRetainedValue() {
+                        throw thrownError
+                    } else {
+                        throw ECError(reason: "SecKeyCreateWithData failed without returning an error")
+                    }
             }
         
             self.nativeKey = secKey
@@ -110,12 +112,12 @@ public class ECPrivateKey {
      KVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
      -----END EC PRIVATE KEY-----
      """
-     let pemKey = ECPrivateKey(pemKey: privateKeyString)
+     let pemKey = try ECPrivateKey(pemKey: privateKeyString)
      ```
      */
-    public init?(pemKey: String) {
+    public init(pemKey: String) throws {
         guard let asn1Key = ASN1.pemToASN1(key: pemKey) else {
-            return nil
+            throw ECError(reason: "Failed to decode pem to ASN1")
         }
         let (result, _) = ASN1.toASN1Element(data: asn1Key)
         guard case let ASN1.ASN1Element.seq(elements: seq) = result,
@@ -124,7 +126,7 @@ public class ECPrivateKey {
             case let ASN1.ASN1Element.bytes(data: objectId) = objectElement,
             case let ASN1.ASN1Element.bytes(data: privateKeyData) = seq[1],
             let hashAlgorithm = HashAlgorithm.objectToHashAlg(ObjectIdentifier: objectId) else {
-                return nil
+                throw ECError(reason: "Failed to identify EC algorithm from ASN1")
         }
         self.hashAlgorithm = hashAlgorithm
         
@@ -133,16 +135,18 @@ public class ECPrivateKey {
         #else
             guard case let ASN1.ASN1Element.constructed(tag: _, elem: publicElement) = seq[3],
                 case let ASN1.ASN1Element.bytes(data: publicKeyData) = publicElement else {
-                    return nil
+                    throw ECError(reason: "Failed to read privateKeyData from ASN1")
             }
             let keyData = publicKeyData.drop(while: { $0 == 0x00}) + privateKeyData
             var error: Unmanaged<CFError>? = nil
             guard let secKey = SecKeyCreateWithData(keyData as CFData,
                                                     [kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyClass: kSecAttrKeyClassPrivate, kSecAttrKeySizeInBits: 256] as CFDictionary, &error)
                 else {
-                    let thrownError = error?.takeRetainedValue()
-                    print(thrownError as Any)
-                    return nil
+                    if let thrownError = error?.takeRetainedValue() {
+                        throw thrownError
+                    } else {
+                        throw ECError(reason: "SecKeyCreateWithData failed without returning an error")
+                    }
             }
             self.nativeKey = secKey
         #endif
@@ -151,8 +155,9 @@ public class ECPrivateKey {
     #if os(Linux)
     private static func bytesToNativeKey(privateKeyData: Data, hashAlgorithm: HashAlgorithm) -> OpaquePointer? {
         let bigNum = BN_new()
-        let privateKeyBytes = [UInt8](privateKeyData)
-        BN_bin2bn(privateKeyBytes, Int32(privateKeyBytes.count), bigNum)
+        privateKeyData.withUnsafeBytes({ (privateKeyBytes: UnsafePointer<UInt8>) -> Void in
+            BN_bin2bn(privateKeyBytes, Int32(privateKeyData.count), bigNum)
+        })
         let ecKey = EC_KEY_new_by_curve_name(hashAlgorithm.curve)
         EC_KEY_set_private_key(ecKey, bigNum)
         BN_free(bigNum)
