@@ -90,17 +90,14 @@ struct HashAlgorithm {
     static func objectToHashAlg(ObjectIdentifier: Data) -> HashAlgorithm? {
         // p-256 (e.g: prime256v1, secp256r1) private key
         if [UInt8](ObjectIdentifier) == [0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07] {
-            print("Using sha256")
             return sha256
         }
         // p-384 (e.g: secp384r1) private key
         if [UInt8](ObjectIdentifier) == [0x2B, 0x81, 0x04, 0x00, 0x22] {
-            print("Using sha384")
             return sha384
         }
         // p-521 (e.g: secp521r1) private key
         if [UInt8](ObjectIdentifier) == [0x2B, 0x81, 0x04, 0x00, 0x23] {
-            print("Using sha512")
             return sha512
         }
         return nil

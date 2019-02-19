@@ -28,10 +28,21 @@ import Glibc
 /// to some `Plaintext` data. It consist of two binary unsigned ints r and s.
 @available(OSX 10.12, *)
 public struct ECSignature {
+    /// The r value of the signature.
+    /// Will be 32 bytes of data for SHA256, 48 bytes for SHA384 or 66 bytes for SHA 512.
     public let r: Data
+    
+    /// The s value of the signature.
+    /// Will be 32 bytes of data for SHA256, 48 bytes for SHA384 or 66 bytes for SHA 512.
     public let s: Data
+    
+    /// The r and a values of the signature encoded into an ASN1 sequence.
     public let asn1: Data
 
+    /// Initialise an ECSignature by providing the r and s values.
+    /// - Parameter r: The r value of the signature as raw data.
+    /// - Parameter s: The s value of the signature as raw data.
+    /// - Returns: A new instance of `ECSignature`.
     public init?(r: Data, s: Data) {
         guard let asn1 = ECSignature.rsSigToASN1(r: r, s: s) else {
             return nil
@@ -41,6 +52,9 @@ public struct ECSignature {
         self.asn1 = asn1
     }
     
+    /// Initialize an ECSignature by providing an ASN1 encoded sequence containing the r and s values.
+    /// - Parameter asn1: The r and s values of the signature encoded as an ASN1 sequence.
+    /// - Returns: A new instance of `ECSignature`.
     public init?(asn1: Data) {
         self.asn1 = asn1
         guard let (r,s) = ECSignature.asn1ToRSSig(asn1: asn1) else {
@@ -50,53 +64,30 @@ public struct ECSignature {
         self.s = s
     }
 
-    public init?(base64EncodedString: String) {
-        guard let data = Data(base64Encoded: base64EncodedString) else {
-            return nil
-        }
-        let r = data.subdata(in: 0 ..< data.count/2)
-        let s = data.subdata(in: data.count/2 ..< data.count)
-        if let asn1 = ECSignature.rsSigToASN1(r: r, s: s) {
-            self.r = r
-            self.s = s
-            self.asn1 = asn1
-        } else if let (asn1R,asn1S) = ECSignature.asn1ToRSSig(asn1: data) {
-            self.r = asn1R
-            self.s = asn1S
-            self.asn1 = data
-        } else {
-            return nil
-        }
-    }
-
-    // Verify the signature using the given public key.
+    /// Verify the signature using the given public key.
+    /// - Parameter plaintext: The r and s values of the signature encoded as an ASN1 sequence.
+    /// - Parameter using ecPublicKey: The ECPublicKey that will be used to verify the plaintext.
+    /// - Returns: true if the plaintext is valid for the provided signature. false otherwise.
     public func verify(plaintext: Plaintext, using ecPublicKey: ECPublicKey) -> Bool {
         
         #if os(Linux)
-            fputs("--Entered Verify--", stderr)
             let signatureBytes = [UInt8](self.asn1)
             let md_ctx = EVP_MD_CTX_new_wrapper()
             let evp_key = EVP_PKEY_new()
-            defer {
-                fputs("--In Defer--", stderr)
-                EVP_MD_CTX_free_wrapper(md_ctx)
-            }
-            fputs("--Made Wrapper--", stderr)
-        
             EVP_PKEY_set1_EC_KEY(evp_key, .make(optional: ecPublicKey.nativeKey))
             var pkey_ctx = EVP_PKEY_CTX_new(evp_key, nil)
-            fputs("--Set Keys--", stderr)
+            defer {
+                EVP_PKEY_free(evp_key)
+                EVP_MD_CTX_free_wrapper(md_ctx)
+            }
+        
             EVP_DigestVerifyInit(md_ctx, &pkey_ctx, .make(optional: ecPublicKey.hashAlgorithm.signingAlgorithm), nil, evp_key)
-        fputs("--EVP_DigestVerifyInit--", stderr)
             let _ = plaintext.data.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in
                 return EVP_DigestUpdate(md_ctx, message, plaintext.data.count)
             })
-        fputs("--EVP_DigestUpdate--", stderr)
-        fputs("--self.asn1.count: \(self.asn1.count)--", stderr)
             let rc = self.asn1.withUnsafeBytes({ (sig: UnsafePointer<UInt8>) -> Int32 in
                 return EVP_DigestVerifyFinal(md_ctx, sig, self.asn1.count)
             })
-        fputs("--SSL_EVP_digestVerifyFinal_wrapper--", stderr)
 
             return rc == 1
         #else
@@ -120,6 +111,11 @@ public struct ECSignature {
     }
 
     static func rsSigToASN1(r: Data, s: Data) -> Data? {
+        
+        guard r.count == s.count, r.count == 32 || r.count == 48 || r.count == 66 else {
+            // r and s are not valid lengths
+            return nil
+        }
         // Convert r,s signature to ASN1 for SecKeyVerifySignature
         var asnSignature = Data()
         // r value is first 32 bytes
@@ -155,23 +151,18 @@ public struct ECSignature {
         asnSignature.append(rSig)
         asnSignature.append(contentsOf: [0x02, sLengthByte])
         asnSignature.append(sSig)
-        fputs("asnSignature: \(asnSignature.base64EncodedString())", stderr)
         return asnSignature
     }
 
     static func asn1ToRSSig(asn1: Data) -> (Data, Data)? {
         
-         print("asn1 length: \(asn1.count)")
         let signatureLength: Int
         if asn1.count < 96 {
-            print("signatureLength: 64")
             signatureLength = 64
         } else if asn1.count < 132 {
             signatureLength = 96
-            print("signatureLength: 96")
         } else {
             signatureLength = 132
-            print("signatureLength: 132")
         }
         
         // Parse ASN into just r,s data as defined in:

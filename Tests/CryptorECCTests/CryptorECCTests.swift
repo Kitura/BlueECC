@@ -9,16 +9,16 @@ import Darwin
 @available(OSX 10.12, *)
 final class CryptorECCTests: XCTestCase {
     static var allTests = [
-//            ("test_PemECDSACycle", test_PemECDSACycle),
-//            ("test_P8ECDSACycle", test_P8ECDSACycle),
-//            ("test_AppleP8ECDSACycle", test_AppleP8ECDSACycle),
-//            ("test_PemECDSAVerify", test_PemECDSAVerify),
-//            ("test_P8ECDSAVerify", test_P8ECDSAVerify),
-//            ("test_Pem384ECDSAVerify", test_Pem384ECDSAVerify),
+            ("test_PemECDSACycle", test_PemECDSACycle),
+            ("test_P8ECDSACycle", test_P8ECDSACycle),
+            ("test_AppleP8ECDSACycle", test_AppleP8ECDSACycle),
+            ("test_PemECDSAVerify", test_PemECDSAVerify),
+            ("test_P8ECDSAVerify", test_P8ECDSAVerify),
+            ("test_Pem384ECDSAVerify", test_Pem384ECDSAVerify),
             ("test_Pem384ECDSACycle", test_Pem384ECDSACycle),
-//            ("test_P8ES384Cycle", test_P8ES384Cycle),
-//            ("test_Pem512ECDSAVerify", test_Pem512ECDSAVerify),
-//            ("test_Pem512ECDSACycle", test_Pem512ECDSACycle),
+            ("test_P8ES384Cycle", test_P8ES384Cycle),
+            ("test_Pem512ECDSAVerify", test_Pem512ECDSAVerify),
+            ("test_Pem512ECDSACycle", test_Pem512ECDSACycle),
         ]
     
     let ecPemPrivateKey = """
@@ -235,8 +235,6 @@ Mw==
             return XCTFail()
         }
         let signature = Plaintext(data: unsignedData).signUsing(ecPrivateKey: ecdsaPrivateKey)
-        fputs("signature: \(signature?.asn1.base64EncodedString())", stderr)
-        fputs("signature exists \(signature != nil)", stderr)
         let verified = signature?.verify(plaintext: Plaintext(data: unsignedData), using: ecdsaPublicKey)
         XCTAssert(verified == true)
     }
@@ -266,23 +264,19 @@ Mw==
     
     func test_Pem384ECDSAVerify() {
         // generated from jwt.io
-        fputs("Entered test_Pem384ECDSAVerify", stderr)
         guard let JWTDigest =  "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzM4NCIsImtpZCI6ImlUcVhYSTB6YkFuSkNLRGFvYmZoa00xZi02ck1TcFRmeVpNUnBfMnRLSTgifQ.eyJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyLCJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0".data(using: .utf8),
             let JWTSignature = Data(base64urlEncoded: "KOJv0MUveeDr5HQwbA4lX31FDJAP-46MIr5rdd1T_4ppSGIfCrN81uyqbs7pbnYta_-_f6EZe6O60BwiotmlE4qLBW_Db2XGOvU0R5z2RMH8rtaNxkKnorsh-ZHn40Xu") else {
                 return XCTFail("Failed to create JWT digest")
         }
         let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
         let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
-        fputs("Got rsSig", stderr)
         guard let ecdsaPublicKey = ECPublicKey(pemKey: ecPem384PublicKey),
             let sig = ECSignature(r: r, s: s)
             else {
                 return XCTFail()
         }
-        fputs("Created Public Key", stderr)
         let verified = sig.verify(plaintext: Plaintext(data: JWTDigest), using: ecdsaPublicKey)
         XCTAssert(verified == true)
-        fputs("test_Pem384ECDSAVerify Completed", stderr)
     }
     
     func test_Pem512ECDSACycle() {

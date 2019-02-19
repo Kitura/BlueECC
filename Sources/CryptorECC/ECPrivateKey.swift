@@ -20,8 +20,9 @@ import CommonCrypto
 import OpenSSL
 #endif
 
+/// A class representing an Elliptic curve private key.
 @available(OSX 10.12, *)
-public struct ECPrivateKey {
+public class ECPrivateKey {
     #if os(Linux)
     public typealias NativeKey = OpaquePointer?
     #else
@@ -30,6 +31,21 @@ public struct ECPrivateKey {
     let nativeKey: NativeKey
     let hashAlgorithm: HashAlgorithm
     
+    /**
+     Initialize an ECPrivateKey from a `.p8` file format.
+     ### Usage Example: ###
+     ```swift
+     let privateKeyString = """
+     -----BEGIN PRIVATE KEY-----
+     MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQg2sD+kukkA8GZUpmm
+     jRa4fJ9Xa/JnIG4Hpi7tNO66+OGgCgYIKoZIzj0DAQehRANCAATZp0yt0btpR9kf
+     ntp4oUUzTV0+eTELXxJxFvhnqmgwGAm1iVW132XLrdRG/ntlbQ1yzUuJkHtYBNve
+     y+77Vzsd
+     -----END PRIVATE KEY-----
+     """
+     let p8Key = ECPrivateKey(p8Key: privateKeyString)
+     ```
+     */
     public init?(p8Key: String) {
         guard let asn1Key = ASN1.pemToASN1(key: p8Key) else {
             return nil
@@ -55,13 +71,7 @@ public struct ECPrivateKey {
                 return nil
         }
         #if os(Linux)
-            let bigNum = BN_new()
-            let privateKeyBytes = [UInt8](privateKeyData)
-            BN_bin2bn(privateKeyBytes, Int32(privateKeyBytes.count), bigNum)
-            let ecKey = EC_KEY_new_by_curve_name(hashAlgorithm.curve)
-            EC_KEY_set_private_key(ecKey, bigNum)
-            BN_free(bigNum)
-            self.nativeKey = ecKey
+        self.nativeKey =  ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData, hashAlgorithm: hashAlgorithm)
         #else
         let publicKeyData: Data
             if case let ASN1.ASN1Element.constructed(tag: 1, elem: publicElement) = seq[2],
@@ -89,6 +99,20 @@ public struct ECPrivateKey {
         #endif
     }
     
+    /**
+     Initialize an ECPrivateKey from a `.pem` file format.
+     ### Usage Example: ###
+     ```swift
+     let privateKeyString = """
+     -----BEGIN EC PRIVATE KEY-----
+     MHcCAQEEIJX+87WJ7Gh19sohyZnhxZeXYNOcuGv4Q+8MLge4UkaZoAoGCCqGSM49
+     AwEHoUQDQgAEikc5m6C2xtDWeeAeT18WElO37zvFOz8p4kAlhvgIHN23XIClNESg
+     KVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
+     -----END EC PRIVATE KEY-----
+     """
+     let pemKey = ECPrivateKey(pemKey: privateKeyString)
+     ```
+     */
     public init?(pemKey: String) {
         guard let asn1Key = ASN1.pemToASN1(key: pemKey) else {
             return nil
@@ -98,25 +122,16 @@ public struct ECPrivateKey {
             seq.count > 3,
             case let ASN1.ASN1Element.constructed(tag: _, elem: objectElement) = seq[2],
             case let ASN1.ASN1Element.bytes(data: objectId) = objectElement,
+            case let ASN1.ASN1Element.bytes(data: privateKeyData) = seq[1],
             let hashAlgorithm = HashAlgorithm.objectToHashAlg(ObjectIdentifier: objectId) else {
                 return nil
         }
         self.hashAlgorithm = hashAlgorithm
         
         #if os(Linux)
-            guard let key = pemKey.data(using: .utf8) else {
-                return nil
-            }
-            let bio = BIO_new(BIO_s_mem())
-            key.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> Void in
-                BIO_puts(bio, bytes)
-            }
-            let privateKey = PEM_read_bio_ECPrivateKey(bio, nil, nil, nil)
-            BIO_free(bio)
-            self.nativeKey = privateKey
+            self.nativeKey =  ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData, hashAlgorithm: hashAlgorithm)
         #else
-            guard case let ASN1.ASN1Element.bytes(data: privateKeyData) = seq[1],
-                case let ASN1.ASN1Element.constructed(tag: _, elem: publicElement) = seq[3],
+            guard case let ASN1.ASN1Element.constructed(tag: _, elem: publicElement) = seq[3],
                 case let ASN1.ASN1Element.bytes(data: publicKeyData) = publicElement else {
                     return nil
             }
@@ -132,4 +147,20 @@ public struct ECPrivateKey {
             self.nativeKey = secKey
         #endif
     }
+
+    #if os(Linux)
+    private static func bytesToNativeKey(privateKeyData: Data, hashAlgorithm: HashAlgorithm) -> OpaquePointer? {
+        let bigNum = BN_new()
+        let privateKeyBytes = [UInt8](privateKeyData)
+        BN_bin2bn(privateKeyBytes, Int32(privateKeyBytes.count), bigNum)
+        let ecKey = EC_KEY_new_by_curve_name(hashAlgorithm.curve)
+        EC_KEY_set_private_key(ecKey, bigNum)
+        BN_free(bigNum)
+        return ecKey
+    }
+    
+    deinit {
+        EC_KEY_free(self.nativeKey)
+    }
+    #endif
 }
