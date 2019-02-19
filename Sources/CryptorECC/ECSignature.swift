@@ -17,8 +17,11 @@ import Foundation
 
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 import CommonCrypto
+import Darwin
+
 #elseif os(Linux)
 import OpenSSL
+import Glibc
 #endif
 
 /// The signature produced by applying Elliptic Curve Digital Signature Algorithm
@@ -70,22 +73,31 @@ public struct ECSignature {
     public func verify(plaintext: Plaintext, using ecPublicKey: ECPublicKey) -> Bool {
         
         #if os(Linux)
+            fputs("--Entered Verify--", stderr)
             let signatureBytes = [UInt8](self.asn1)
             let md_ctx = EVP_MD_CTX_new_wrapper()
+            let evp_key = EVP_PKEY_new()
             defer {
+                fputs("--In Defer--", stderr)
                 EVP_MD_CTX_free_wrapper(md_ctx)
             }
-            let evp_key = EVP_PKEY_new()
+            fputs("--Made Wrapper--", stderr)
+        
             EVP_PKEY_set1_EC_KEY(evp_key, .make(optional: ecPublicKey.nativeKey))
             var pkey_ctx = EVP_PKEY_CTX_new(evp_key, nil)
+            fputs("--Set Keys--", stderr)
             EVP_DigestVerifyInit(md_ctx, &pkey_ctx, .make(optional: ecPublicKey.hashAlgorithm.signingAlgorithm), nil, evp_key)
+        fputs("--EVP_DigestVerifyInit--", stderr)
             let _ = plaintext.data.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in
                 return EVP_DigestUpdate(md_ctx, message, plaintext.data.count)
             })
+        fputs("--EVP_DigestUpdate--", stderr)
+        fputs("--self.asn1.count: \(self.asn1.count)--", stderr)
             let rc = self.asn1.withUnsafeBytes({ (sig: UnsafePointer<UInt8>) -> Int32 in
-                return SSL_EVP_digestVerifyFinal_wrapper(md_ctx, sig, self.asn1.count)
+                return EVP_DigestVerifyFinal(md_ctx, sig, self.asn1.count)
             })
-        
+        fputs("--SSL_EVP_digestVerifyFinal_wrapper--", stderr)
+
             return rc == 1
         #else
             // MacOS, iOS ect.
@@ -143,18 +155,23 @@ public struct ECSignature {
         asnSignature.append(rSig)
         asnSignature.append(contentsOf: [0x02, sLengthByte])
         asnSignature.append(sSig)
+        fputs("asnSignature: \(asnSignature.base64EncodedString())", stderr)
         return asnSignature
     }
 
     static func asn1ToRSSig(asn1: Data) -> (Data, Data)? {
         
+         print("asn1 length: \(asn1.count)")
         let signatureLength: Int
         if asn1.count < 96 {
+            print("signatureLength: 64")
             signatureLength = 64
         } else if asn1.count < 132 {
             signatureLength = 96
+            print("signatureLength: 96")
         } else {
             signatureLength = 132
+            print("signatureLength: 132")
         }
         
         // Parse ASN into just r,s data as defined in:

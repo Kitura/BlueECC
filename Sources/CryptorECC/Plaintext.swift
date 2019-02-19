@@ -41,10 +41,10 @@ public struct Plaintext {
         let signature: Data
         #if os(Linux)
             let md_ctx = EVP_MD_CTX_new_wrapper()
+            let evp_key = EVP_PKEY_new()
             defer {
                 EVP_MD_CTX_free_wrapper(md_ctx)
             }
-            let evp_key = EVP_PKEY_new()
             guard EVP_PKEY_set1_EC_KEY(evp_key, .make(optional: ecPrivateKey.nativeKey)) == 1 else {
                 return nil
             }
