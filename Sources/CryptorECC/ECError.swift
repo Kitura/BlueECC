@@ -25,7 +25,7 @@ public struct ECError: Error, Equatable {
     private let internalError: InternalError
     
     private enum InternalError {
-        case invalidPEMString, unknownPEMHeader, failedBase64Encoding, failedASN1Decoding, unsupportedCurve, failedNativeKeyCreation, failedEvpInit, failedSigningAlgorithm, invalidRSLength
+        case invalidPEMString, unknownPEMHeader, failedBase64Encoding, failedASN1Decoding, unsupportedCurve, failedNativeKeyCreation, failedEvpInit, failedSigningAlgorithm, invalidRSLength, failedEncryptionAlgorithm, failedUTF8Decoding, failedDecryptionAlgorithm
     }
     
     /// Error thrown when an invalid PEM String used to initialize a key.
@@ -55,6 +55,15 @@ public struct ECError: Error, Equatable {
     /// Error thrown when the provided R and S Data was not a valid length.
     /// They must be the same length and either 32, 48 or 66 bytes (Depending on the curve used).
     public static let invalidRSLength = ECError(localizedDescription: "The provided R and S values were not a valid length", internalError: .invalidRSLength)
+    
+    /// Error thrown when the encryption algorithm could not encrypt the plaintext.
+    public static let failedEncryptionAlgorithm = ECError(localizedDescription: "Encryption algorithm failed to encrypt the data", internalError: .failedEncryptionAlgorithm)
+    
+    /// Error thrown when the decryption algorithm could not decrypt the encrypted Data.
+    public static let failedDecryptionAlgorithm = ECError(localizedDescription: "Decryption algorithm failed to decrypt the data", internalError: .failedDecryptionAlgorithm)
+    
+    /// Error thrown when the Data could not be decoded into a UTF8 String.
+    public static let failedUTF8Decoding = ECError(localizedDescription: "Data could not be decoded as a UTF8 String", internalError: .failedUTF8Decoding)
     
     /// Function to check if ECSigningErrors are equal. Required for equatable protocol.
     public static func == (lhs: ECError, rhs: ECError) -> Bool {

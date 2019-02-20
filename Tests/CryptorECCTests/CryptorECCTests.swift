@@ -370,6 +370,18 @@ Mw==
         let verified = signature?.verify(plaintext: changedPlaintextData, using: ecdsaPublicKey)
         XCTAssertFalse(verified ?? false)
     }
+    
+    func test_encryptionCycle() {        
+        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPemPrivateKey) else {
+            return XCTFail()
+        }
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPemPublicKey) else {
+            return XCTFail()
+        }
+        let encrypted = try? "Hello world".encryptToString(with: ecdsaPublicKey)
+        let decrypted = try? encrypted?.decryptToString(with: ecdsaPrivateKey)
+        XCTAssert(decrypted == "Hello world")
+    }
 }
 
 extension Data {
