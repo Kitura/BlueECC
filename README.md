@@ -63,10 +63,6 @@ PyniQCWG+Agc3bdcgKU0RKApWYuBJKrZqyqLB2tTlgdtwcWSB0AEzVI8
 -----END PRIVATE KEY-----
 """
 ```
-The key can then be used to initialize an `ECPrivateKey` instance:
-```swift
-let ecdsaPrivateKey = try ECPrivateKey(p8Key: p8PrivateKey)
-```
 
 Alternatively, you can use OpenSSL [Command Line Elliptic Curve Operations](https://wiki.openssl.org/index.php/Command_Line_Elliptic_Curve_Operations).  
 OpenSSL can be installed via brew:
@@ -85,7 +81,7 @@ $ openssl ecparam -name secp384r1 -genkey -noout -out key.pem
 $ openssl ecparam -name secp521r1 -genkey -noout -out key.pem
 ```
 These keys will be formatted as follows:
-```
+```swift
 let pemPrivateKey = 
 """
 -----BEGIN EC PRIVATE KEY-----
@@ -96,6 +92,11 @@ KVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
 """
 ```
 
+The key can then be used to initialize an `ECPrivateKey` instance:
+```swift
+let ecdsaPrivateKey = try ECPrivateKey(key: pemPrivateKey)
+```
+
 ####  Elliptic curve public  key
 
 Use OpenSSL to generate an EC public key `.pem` file from any of the above EC private key files:
@@ -103,7 +104,7 @@ Use OpenSSL to generate an EC public key `.pem` file from any of the above EC pr
 $ openssl ec -in key.pem -pubout -out public.pem
 ```
 This will produce a public key formatted as follows:
-```
+```swift
 let pemPublicKey = 
 """
 -----BEGIN PUBLIC KEY-----
@@ -114,7 +115,7 @@ Oz8p4kAlhvgIHN23XIClNESgKVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
 ```
 These keys can then be used to initialize an `ECPrivateKey` instance:
 ```swift
-let ecdsaPublicKey = try ECPublicKey(pemKey: pemPublicKey)
+let ecdsaPublicKey = try ECPublicKey(key: pemPublicKey)
 ```
 
 #### Signing String or Data

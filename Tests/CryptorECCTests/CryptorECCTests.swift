@@ -4,6 +4,7 @@ import XCTest
 @available(OSX 10.12, *)
 final class CryptorECCTests: XCTestCase {
     static var allTests = [
+            ("test_simpleCycle", test_simpleCycle),
             ("test_PemECDSACycle", test_PemECDSACycle),
             ("test_P8ECDSACycle", test_P8ECDSACycle),
             ("test_AppleP8ECDSACycle", test_AppleP8ECDSACycle),
@@ -107,6 +108,18 @@ Mw==
 -----END PRIVATE KEY-----
 """
     
+    func test_simpleCycle() {        
+        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPemPrivateKey) else {
+            return XCTFail()
+        }
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPemPublicKey) else {
+            return XCTFail()
+        }
+        let signature = try? "Hello world".sign(with: ecdsaPrivateKey)
+        let verified = signature?.verify(plaintext: "Hello world", using: ecdsaPublicKey)
+        XCTAssert(verified == true)
+    }
+    
     func test_PemECDSACycle() {
         guard let exampleJWTHeader = try? JSONSerialization.data(withJSONObject: ["alg": "ES256", "typ": "JWT"]),
             let exampleJWTClaims = try? JSONSerialization.data(withJSONObject: ["sub": "1234567890", "admin": true, "iat": 1516239022])
@@ -116,10 +129,10 @@ Mw==
         
         let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
         
-        guard let ecdsaPrivateKey = try? ECPrivateKey(pemKey: ecPemPrivateKey) else {
+        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPemPrivateKey) else {
             return XCTFail()
         }
-        guard let ecdsaPublicKey = try? ECPublicKey(pemKey: ecPemPublicKey) else {
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPemPublicKey) else {
             return XCTFail()
         }
         let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
@@ -136,10 +149,10 @@ Mw==
         
         let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
         
-        guard let ecdsaPrivateKey = try? ECPrivateKey(p8Key: ecP8PrivateKey) else {
+        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecP8PrivateKey) else {
             return XCTFail()
         }
-        guard let ecdsaPublicKey = try? ECPublicKey(pemKey: ecP8PublicKey) else {
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecP8PublicKey) else {
             return XCTFail()
         }
         let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
@@ -156,10 +169,10 @@ Mw==
         
         let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
         
-        guard let ecdsaPrivateKey = try? ECPrivateKey(p8Key: appleECP8PrivateKey) else {
+        guard let ecdsaPrivateKey = try? ECPrivateKey(key: appleECP8PrivateKey) else {
             return XCTFail()
         }
-        guard let ecdsaPublicKey = try? ECPublicKey(pemKey: appleECP8PublicKey) else {
+        guard let ecdsaPublicKey = try? ECPublicKey(key: appleECP8PublicKey) else {
             return XCTFail()
         }
         let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
@@ -175,7 +188,7 @@ Mw==
         }
         let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
         let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
-        guard let ecdsaPublicKey = try? ECPublicKey(pemKey: ecPemPublicKey),
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPemPublicKey),
             let sig = try? ECSignature(r: r, s: s)
         else {
             return XCTFail()
@@ -192,7 +205,7 @@ Mw==
         }
         let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
         let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
-        guard let ecdsaPublicKey = try? ECPublicKey(pemKey: ecPemPublicKey),
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPemPublicKey),
             let sig = try? ECSignature(r: r, s: s)
         else {
             return XCTFail()
@@ -211,10 +224,10 @@ Mw==
         
         let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
         
-        guard let ecdsaPrivateKey = try? ECPrivateKey(pemKey: ecPem384PrivateKey) else {
+        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPem384PrivateKey) else {
             return XCTFail()
         }
-        guard let ecdsaPublicKey = try? ECPublicKey(pemKey: ecPem384PublicKey) else {
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem384PublicKey) else {
             return XCTFail()
         }
         let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
@@ -231,10 +244,10 @@ Mw==
         
         let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
         
-        guard let ecdsaPrivateKey = try? ECPrivateKey(p8Key: ecP8ES384PrivateKey) else {
+        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecP8ES384PrivateKey) else {
             return XCTFail()
         }
-        guard let ecdsaPublicKey = try? ECPublicKey(pemKey: ecPem384PublicKey) else {
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem384PublicKey) else {
             return XCTFail()
         }
         let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
@@ -250,7 +263,7 @@ Mw==
         }
         let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
         let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
-        guard let ecdsaPublicKey = try? ECPublicKey(pemKey: ecPem384PublicKey),
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem384PublicKey),
             let sig = try? ECSignature(r: r, s: s)
             else {
                 return XCTFail()
@@ -268,10 +281,10 @@ Mw==
         
         let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
         
-        guard let ecdsaPrivateKey = try? ECPrivateKey(pemKey: ecPem512PrivateKey) else {
+        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPem512PrivateKey) else {
             return XCTFail()
         }
-        guard let ecdsaPublicKey = try? ECPublicKey(pemKey: ecPem512PublicKey) else {
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem512PublicKey) else {
             return XCTFail()
         }
         let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
@@ -288,10 +301,10 @@ Mw==
         
         let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
         
-        guard let ecdsaPrivateKey = try? ECPrivateKey(p8Key: ecP8ES512PrivateKey) else {
+        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecP8ES512PrivateKey) else {
             return XCTFail()
         }
-        guard let ecdsaPublicKey = try? ECPublicKey(pemKey: ecPem512PublicKey) else {
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem512PublicKey) else {
             return XCTFail()
         }
         let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
@@ -307,7 +320,7 @@ Mw==
         }
         let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
         let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
-        guard let ecdsaPublicKey = try? ECPublicKey(pemKey: ecPem512PublicKey),
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem512PublicKey),
             let sig = try? ECSignature(r: r, s: s)
         else {
             return XCTFail()
@@ -325,10 +338,10 @@ Mw==
         
         let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
         
-        guard let ecdsaPrivateKey = try? ECPrivateKey(pemKey: ecPemPrivateKey) else {
+        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPemPrivateKey) else {
             return XCTFail()
         }
-        guard let ecdsaPublicKey = try? ECPublicKey(pemKey: ecPem384PublicKey) else {
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem384PublicKey) else {
             return XCTFail()
         }
         let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
@@ -346,10 +359,10 @@ Mw==
                 return XCTFail("Failed to encode unsignedJWT to utf8")
         }
         
-        guard let ecdsaPrivateKey = try? ECPrivateKey(pemKey: ecPemPrivateKey) else {
+        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPemPrivateKey) else {
             return XCTFail()
         }
-        guard let ecdsaPublicKey = try? ECPublicKey(pemKey: ecPemPublicKey) else {
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPemPublicKey) else {
             return XCTFail()
         }
         let signature = try? plaintextData.sign(with: ecdsaPrivateKey)

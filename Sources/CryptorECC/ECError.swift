@@ -16,18 +16,48 @@
 
 import Foundation
 
-// MARK: ECSigningError
-/// A struct representing the different errors that can be thrown by ECSignable
+/// A struct representing the different errors that can be thrown by CryptorECC.
 public struct ECError: Error, Equatable {
     
-    init(reason: String) {
-        self.localizedDescription = reason
-    }
     /// A human readable description of the error.
     public let localizedDescription: String
+
+    private let internalError: InternalError
+    
+    private enum InternalError {
+        case invalidPEMString, unknownPEMHeader, failedBase64Encoding, failedASN1Decoding, unsupportedCurve, failedNativeKeyCreation, failedEvpInit, failedSigningAlgorithm, invalidRSLength
+    }
+    
+    /// Error thrown when an invalid PEM String used to initialize a key.
+    public static let invalidPEMString = ECError(localizedDescription: "Input was not a valid PEM String", internalError: .invalidPEMString)
+    
+    /// Error thrown when the PEM header is not recognized.
+    public static let unknownPEMHeader = ECError(localizedDescription: "Input was not a valid PEM String", internalError: .unknownPEMHeader)
+
+    /// Error thrown when a String fails to be Base64 encoded.
+    public static let failedBase64Encoding = ECError(localizedDescription: "Failed to base64 encode the String", internalError: .failedBase64Encoding)
+
+    /// Error thrown when the ASN1 data could not be decoded to the expected structure.
+    public static let failedASN1Decoding = ECError(localizedDescription: "ASN1 data could not be decoded to expected structure", internalError: .failedASN1Decoding)
+    
+    /// Error thrown when the key's object identifier is for a curve that is not supported.
+    public static let unsupportedCurve = ECError(localizedDescription: "The key object identifier is for a non-supported curve", internalError: .unsupportedCurve)
+    
+    /// Error thrown when the key could not be converted to a native key (`SecKey` for Apple, `EC_KEY` for linux).
+    public static let failedNativeKeyCreation = ECError(localizedDescription: "The key data could not be converted to a native key", internalError: .failedNativeKeyCreation)
+    
+    /// Error thrown when the encryption envelope fails to initialize.
+    public static let failedEvpInit = ECError(localizedDescription: "Failed to initialize the signing envelope", internalError: .failedEvpInit)
+        
+    /// Error thrown when the signing algorithm could not create the signature.
+    public static let failedSigningAlgorithm = ECError(localizedDescription: "Signing algorithm failed to create the signature", internalError: .failedSigningAlgorithm)
+    
+    /// Error thrown when the provided R and S Data was not a valid length.
+    /// They must be the same length and either 32, 48 or 66 bytes (Depending on the curve used).
+    public static let invalidRSLength = ECError(localizedDescription: "The provided R and S values were not a valid length", internalError: .invalidRSLength)
     
     /// Function to check if ECSigningErrors are equal. Required for equatable protocol.
     public static func == (lhs: ECError, rhs: ECError) -> Bool {
-        return lhs.localizedDescription == rhs.localizedDescription
+        return lhs.internalError == rhs.internalError
     }
 }

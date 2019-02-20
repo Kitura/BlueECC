@@ -20,16 +20,41 @@ import CommonCrypto
 import OpenSSL
 #endif
 
-/// A class representing an elliptic curve public key.
+/**
+ A class representing an elliptic curve public key.
+ Supported curves are:  
+ - prime256v1  
+ - secp384r1  
+ - NID_secp521r1  
+ You can generate an Elliptic curve Key using OpenSSL:  
+ https://wiki.openssl.org/index.php/Command_Line_Elliptic_Curve_Operations#Generating_EC_Keys_and_Parameters  
+ 
+ ### Usage Example: 
+ ```swift
+ let pemKey = """
+ -----BEGIN PUBLIC KEY-----
+ MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEikc5m6C2xtDWeeAeT18WElO37zvF
+ Oz8p4kAlhvgIHN23XIClNESgKVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
+ -----END PUBLIC KEY-----
+ """
+ let publicKey = try ECPublicKey(key: pemKey)
+ let base64Sig = "MEYCIQCvgBLn+tQoBDBR3D2G3485GloYGNxuk6PqR4qjr5GDqAIhAKNvsqvesVBD/MLub/KAyzLLNGtUZyQDxYZj/4vmHwWF"
+ let signature = try ECSignature(asn1: Data(base64Encoded: base64Sig)) 
+ let verified = signature.verify(plaintext: "Hello world", using: publicKey)
+ ```
+ */
 @available(OSX 10.12, *)
 public class ECPublicKey {
     #if os(Linux)
-    public typealias NativeKey = OpaquePointer?
+    typealias NativeKey = OpaquePointer?
+    deinit {
+        EC_KEY_free(self.nativeKey)
+    }
     #else
-    public typealias NativeKey = SecKey
+    typealias NativeKey = SecKey
     #endif
     let nativeKey: NativeKey
-    let hashAlgorithm: HashAlgorithm
+    let algorithm: ECAlgorithm
 
     /**
      Initialize an ECPublicKey from a `.pem` file format.
@@ -41,36 +66,53 @@ public class ECPublicKey {
      Oz8p4kAlhvgIHN23XIClNESgKVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
      -----END PUBLIC KEY-----
      """
-     let pemKey = try ECPublicKey(pemKey: publicKeyString)
+     let pemKey = try ECPublicKey(key: publicKeyString)
      ```
      */
-    public init(pemKey: String) throws {
-        guard let asn1Key = ASN1.pemToASN1(key: pemKey) else {
-            throw ECError(reason: "Failed to decode pem to ASN1")
+    public convenience init(key: String) throws {
+        let strippedKey = String(key.filter { !" \n\t\r".contains($0) })
+        var pemComponents = strippedKey.components(separatedBy: "-----")
+        guard pemComponents.count == 5 else {
+            throw ECError.invalidPEMString
         }
-        let (result, _) = ASN1.toASN1Element(data: asn1Key)
+        guard let der = Data(base64Encoded: pemComponents[2]) else {
+            throw ECError.invalidPEMString
+        }
+        if pemComponents[1] == "BEGINPUBLICKEY" {
+            try self.init(der: der)
+        } else {
+            throw ECError.unknownPEMHeader
+        }
+    }
+    
+    /**
+    Initialize an ECPublicKey from `.der` file data.
+    */
+    public init(der: Data) throws {
+        let (result, _) = ASN1.toASN1Element(data: der)
         guard case let ASN1.ASN1Element.seq(elements: seq) = result,
             seq.count > 1,
             case let ASN1.ASN1Element.seq(elements: ids) = seq[0],
             ids.count > 1,
             case let ASN1.ASN1Element.bytes(data: privateKeyID) = ids[1],
-            let hashAlgorithm = HashAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID),
             case let ASN1.ASN1Element.bytes(data: publicKeyData) = seq[1]
         else {
-            throw ECError(reason: "Failed read public key bytes from ASN1")
+            throw ECError.failedASN1Decoding
         }
-        self.hashAlgorithm = hashAlgorithm
+        self.algorithm = try ECAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID)
         
         #if os(Linux)
             let bigNum = BN_new()
             publicKeyData.withUnsafeBytes({ (publicKeyBytes: UnsafePointer<UInt8>) -> Void in
                 BN_bin2bn(publicKeyBytes, Int32(publicKeyData.count), bigNum)
             })
-            let ecKey = EC_KEY_new_by_curve_name(hashAlgorithm.curve)
+            let ecKey = EC_KEY_new_by_curve_name(algorithm.curve)
             let ecGroup = EC_KEY_get0_group(ecKey)
             let ecPoint = EC_POINT_new(ecGroup)
             EC_POINT_bn2point(ecGroup, bigNum, ecPoint, nil)
-            EC_KEY_set_public_key(ecKey, ecPoint)
+            guard EC_KEY_set_public_key(ecKey, ecPoint) == 1 else {
+                throw ECError.failedNativeKeyCreation
+            }
             BN_free(bigNum)
             EC_POINT_free(ecPoint)
             self.nativeKey = ecKey
@@ -78,21 +120,18 @@ public class ECPublicKey {
             let keyData = publicKeyData.drop(while: { $0 == 0x00})
             var error: Unmanaged<CFError>? = nil
             guard let secKey = SecKeyCreateWithData(keyData as CFData,
-                                                    [kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyClass: kSecAttrKeyClassPublic, kSecAttrKeySizeInBits: 256] as CFDictionary, &error)
-                else {
-                    if let thrownError = error?.takeRetainedValue() {
-                        throw thrownError
-                    } else {
-                        throw ECError(reason: "SecKeyCreateWithData failed without returning an error")
-                    }
+                                                    [kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom,
+                                                     kSecAttrKeyClass: kSecAttrKeyClassPublic,
+                                                     kSecAttrKeySizeInBits: 256] as CFDictionary,
+                                                     &error)
+            else {
+                if let secError = error?.takeRetainedValue() {
+                    throw secError
+                } else {
+                    throw ECError.failedNativeKeyCreation
+                }
             }
             self.nativeKey = secKey
         #endif
     }
-    
-    #if os(Linux)
-    deinit {
-        EC_KEY_free(self.nativeKey)
-    }
-    #endif
 }

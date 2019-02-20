@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Structures  Reference</title>
+    <title>Extensions  Reference</title>
     <link rel="stylesheet" type="text/css" href="css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="css/highlight.css" />
     <meta charset='utf-8'>
@@ -10,7 +10,7 @@
     
   </head>
   <body>
-    <a title="Structures  Reference"></a>
+    <a title="Extensions  Reference"></a>
     <header>
       <div class="content-wrapper">
         <p><a href="index.html">CryptorECC Docs</a> (100% documented)</p>
@@ -20,7 +20,7 @@
       <p id="breadcrumbs">
         <a href="index.html">CryptorECC Reference</a>
         <img id="carat" src="img/carat.png" />
-        Structures  Reference
+        Extensions  Reference
       </p>
     </div>
     <div class="content-wrapper">
@@ -72,8 +72,8 @@
       <article class="main-content">
         <section>
           <section class="section">
-            <h1>Structures</h1>
-            <p>The following structures are available globally.</p>
+            <h1>Extensions</h1>
+            <p>The following extensions are available globally.</p>
 
           </section>
           <section class="section task-group-section">
@@ -82,9 +82,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:10CryptorECC7ECErrorV"></a>
-                    <a name="//apple_ref/swift/Struct/ECError" class="dashAnchor"></a>
-                    <a class="token" href="#/s:10CryptorECC7ECErrorV">ECError</a>
+                    <a name="/s:SS"></a>
+                    <a name="//apple_ref/swift/Extension/String" class="dashAnchor"></a>
+                    <a class="token" href="#/s:SS">String</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -92,31 +92,27 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>A struct representing the different errors that can be thrown by CryptorECC.</p>
+                        <p>Extension for signing a <code>String</code> by converting it to utf8 Data and signing the bytes.</p>
 
-                        <a href="Structs/ECError.html" class="slightly-smaller">See more</a>
+                        <a href="Extensions/String.html" class="slightly-smaller">See more</a>
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ECError</span><span class="p">:</span> <span class="kt">Error</span><span class="p">,</span> <span class="kt">Equatable</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">String</span></code></pre>
 
                         </div>
                       </div>
                     </section>
                   </div>
                 </li>
-              </ul>
-            </div>
-            <div class="task-group">
-              <ul>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:10CryptorECC11ECSignatureV"></a>
-                    <a name="//apple_ref/swift/Struct/ECSignature" class="dashAnchor"></a>
-                    <a class="token" href="#/s:10CryptorECC11ECSignatureV">ECSignature</a>
+                    <a name="/s:10Foundation4DataV"></a>
+                    <a name="//apple_ref/swift/Extension/Data" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10Foundation4DataV">Data</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -124,18 +120,9 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>The signature produced by applying Elliptic Curve Digital Signature Algorithm
-to some <code>Plaintext</code> data. It consist of two binary unsigned ints r and s.</p>
+                        <p>Extension for signing <code>Data</code> with an <code><a href="Classes/ECPrivateKey.html">ECPrivateKey</a></code> and the algorithm determined by the key&rsquo;s curve.</p>
 
-                        <a href="Structs/ECSignature.html" class="slightly-smaller">See more</a>
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ECSignature</span></code></pre>
-
-                        </div>
+                        <a href="Extensions/Data.html" class="slightly-smaller">See more</a>
                       </div>
                     </section>
                   </div>

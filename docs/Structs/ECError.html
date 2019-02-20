@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>ECError Structure Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Struct/ECError" class="dashAnchor"></a>
+    <a title="ECError Structure Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html">CryptorECC Docs</a> (100% documented)</p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html">CryptorECC Reference</a>
+        <img id="carat" src="../img/carat.png" />
+        ECError Structure Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/ECPrivateKey.html">ECPrivateKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ECPublicKey.html">ECPublicKey</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Extensions/Data.html">Data</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/String.html">String</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Protocols/ECSignable.html">ECSignable</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/ECError.html">ECError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ECSignature.html">ECSignature</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>ECError</h1>
+              <div class="declaration">
+                <div class="language">
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ECError</span><span class="p">:</span> <span class="kt">Error</span><span class="p">,</span> <span class="kt">Equatable</span></code></pre>
+
+                </div>
+              </div>
+            <p>A struct representing the different errors that can be thrown by CryptorECC.</p>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC7ECErrorV20localizedDescriptionSSvp"></a>
+                    <a name="//apple_ref/swift/Property/localizedDescription" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC7ECErrorV20localizedDescriptionSSvp">localizedDescription</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A human readable description of the error.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">localizedDescription</span><span class="p">:</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC7ECErrorV16invalidPEMStringACvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/invalidPEMString" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC7ECErrorV16invalidPEMStringACvpZ">invalidPEMString</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Error thrown when an invalid PEM String used to initialize a key.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">invalidPEMString</span> <span class="o">=</span> <span class="kt">ECError</span><span class="p">(</span><span class="nv">localizedDescription</span><span class="p">:</span> <span class="s">"Input was not a valid PEM String"</span><span class="p">,</span> <span class="nv">internalError</span><span class="p">:</span> <span class="o">.</span><span class="n">invalidPEMString</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC7ECErrorV16unknownPEMHeaderACvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/unknownPEMHeader" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC7ECErrorV16unknownPEMHeaderACvpZ">unknownPEMHeader</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Error thrown when the PEM header is not recognized.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">unknownPEMHeader</span> <span class="o">=</span> <span class="kt">ECError</span><span class="p">(</span><span class="nv">localizedDescription</span><span class="p">:</span> <span class="s">"Input was not a valid PEM String"</span><span class="p">,</span> <span class="nv">internalError</span><span class="p">:</span> <span class="o">.</span><span class="n">unknownPEMHeader</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC7ECErrorV20failedBase64EncodingACvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/failedBase64Encoding" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC7ECErrorV20failedBase64EncodingACvpZ">failedBase64Encoding</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Error thrown when a String fails to be Base64 encoded.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">failedBase64Encoding</span> <span class="o">=</span> <span class="kt">ECError</span><span class="p">(</span><span class="nv">localizedDescription</span><span class="p">:</span> <span class="s">"Failed to base64 encode the String"</span><span class="p">,</span> <span class="nv">internalError</span><span class="p">:</span> <span class="o">.</span><span class="n">failedBase64Encoding</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC7ECErrorV18failedASN1DecodingACvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/failedASN1Decoding" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC7ECErrorV18failedASN1DecodingACvpZ">failedASN1Decoding</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Error thrown when the ASN1 data could not be decoded to the expected structure.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">failedASN1Decoding</span> <span class="o">=</span> <span class="kt">ECError</span><span class="p">(</span><span class="nv">localizedDescription</span><span class="p">:</span> <span class="s">"ASN1 data could not be decoded to expected structure"</span><span class="p">,</span> <span class="nv">internalError</span><span class="p">:</span> <span class="o">.</span><span class="n">failedASN1Decoding</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC7ECErrorV16unsupportedCurveACvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/unsupportedCurve" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC7ECErrorV16unsupportedCurveACvpZ">unsupportedCurve</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Error thrown when the key&rsquo;s object identifier is for a curve that is not supported.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">unsupportedCurve</span> <span class="o">=</span> <span class="kt">ECError</span><span class="p">(</span><span class="nv">localizedDescription</span><span class="p">:</span> <span class="s">"The key object identifier is for a non-supported curve"</span><span class="p">,</span> <span class="nv">internalError</span><span class="p">:</span> <span class="o">.</span><span class="n">unsupportedCurve</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC7ECErrorV23failedNativeKeyCreationACvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/failedNativeKeyCreation" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC7ECErrorV23failedNativeKeyCreationACvpZ">failedNativeKeyCreation</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Error thrown when the key could not be converted to a native key (<code>SecKey</code> for Apple, <code>EC_KEY</code> for linux).</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">failedNativeKeyCreation</span> <span class="o">=</span> <span class="kt">ECError</span><span class="p">(</span><span class="nv">localizedDescription</span><span class="p">:</span> <span class="s">"The key data could not be converted to a native key"</span><span class="p">,</span> <span class="nv">internalError</span><span class="p">:</span> <span class="o">.</span><span class="n">failedNativeKeyCreation</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC7ECErrorV13failedEvpInitACvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/failedEvpInit" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC7ECErrorV13failedEvpInitACvpZ">failedEvpInit</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Error thrown when the encryption envelope fails to initialize.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">failedEvpInit</span> <span class="o">=</span> <span class="kt">ECError</span><span class="p">(</span><span class="nv">localizedDescription</span><span class="p">:</span> <span class="s">"Failed to initialize the signing envelope"</span><span class="p">,</span> <span class="nv">internalError</span><span class="p">:</span> <span class="o">.</span><span class="n">failedEvpInit</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC7ECErrorV22failedSigningAlgorithmACvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/failedSigningAlgorithm" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC7ECErrorV22failedSigningAlgorithmACvpZ">failedSigningAlgorithm</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Error thrown when the signing algorithm could not create the signature.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">failedSigningAlgorithm</span> <span class="o">=</span> <span class="kt">ECError</span><span class="p">(</span><span class="nv">localizedDescription</span><span class="p">:</span> <span class="s">"Signing algorithm failed to create the signature"</span><span class="p">,</span> <span class="nv">internalError</span><span class="p">:</span> <span class="o">.</span><span class="n">failedSigningAlgorithm</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC7ECErrorV15invalidRSLengthACvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/invalidRSLength" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC7ECErrorV15invalidRSLengthACvpZ">invalidRSLength</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Error thrown when the provided R and S Data was not a valid length.
+They must be the same length and either 32, 48 or 66 bytes (Depending on the curve used).</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">invalidRSLength</span> <span class="o">=</span> <span class="kt">ECError</span><span class="p">(</span><span class="nv">localizedDescription</span><span class="p">:</span> <span class="s">"The provided R and S values were not a valid length"</span><span class="p">,</span> <span class="nv">internalError</span><span class="p">:</span> <span class="o">.</span><span class="n">invalidRSLength</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC7ECErrorV2eeoiySbAC_ACtFZ"></a>
+                    <a name="//apple_ref/swift/Method/==(_:_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC7ECErrorV2eeoiySbAC_ACtFZ">==(_:_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Function to check if ECSigningErrors are equal. Required for equatable protocol.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="o">==</span> <span class="p">(</span><span class="nv">lhs</span><span class="p">:</span> <span class="kt">ECError</span><span class="p">,</span> <span class="nv">rhs</span><span class="p">:</span> <span class="kt">ECError</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2019 <a class="link" href="https://github.com/IBM-Swift/BlueECC" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2019-02-20)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>
