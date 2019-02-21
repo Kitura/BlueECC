@@ -71,6 +71,9 @@ public class ECPrivateKey {
      let key = try ECPrivateKey(key: privateKeyString)
      ```
      */
+    /// - Parameter key: The elliptic curve private key as a PEM string.
+    /// - Returns: An ECPrivateKey.
+    /// - Throws: An ECError if the PEM string can't be decoded or is not a valid key.
     public convenience init(key: String) throws {
         // Strip whitespace characters
         let strippedKey = String(key.filter { !" \n\t\r".contains($0) })
@@ -97,9 +100,12 @@ public class ECPrivateKey {
         }
     }
 
-    /**
-     Initialize an ECPrivateKey from a PKCS8 `.der` file data.
-     */
+    /// Initialize an ECPrivateKey from a PKCS8 `.der` file data.  
+    /// This is equivalent to a PEM String that has had the "-----BEGIN PRIVATE KEY-----"
+    /// header and footer stripped and been base64 encoded to ASN1 Data.
+    /// - Parameter pkcs8DER: The elliptic curve private key Data.
+    /// - Returns: An ECPrivateKey.
+    /// - Throws: An ECError if the Data can't be decoded or is not a valid key.
     public init(pkcs8DER: Data) throws {
         let (result, _) = ASN1.toASN1Element(data: pkcs8DER)
         guard case let ASN1.ASN1Element.seq(elements: es) = result,
@@ -139,9 +145,12 @@ public class ECPrivateKey {
                                                             algorithm: algorithm)
     }
 
-    /**
-     Initialize an ECPrivateKey from a SEC1 formatted `.der` file data:
-     */
+    /// Initialize an ECPrivateKey from a SEC1 `.der` file data.  
+    /// This is equivalent to a PEM String that has had the "-----BEGIN EC PRIVATE KEY-----"
+    /// header and footer stripped and been base64 encoded to ASN1 Data.
+    /// - Parameter sec1DER: The elliptic curve private key Data.
+    /// - Returns: An ECPrivateKey.
+    /// - Throws: An ECError if the Data can't be decoded or is not a valid key.
     public init(sec1DER: Data) throws {
         let (result, _) = ASN1.toASN1Element(data: sec1DER)
         guard case let ASN1.ASN1Element.seq(elements: seq) = result,

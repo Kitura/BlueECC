@@ -46,6 +46,7 @@ public struct ECSignature {
     /// - Parameter r: The r value of the signature as raw data.
     /// - Parameter s: The s value of the signature as raw data.
     /// - Returns: A new instance of `ECSignature`.
+    /// - Throws: An ECError if the r or s values are not a valid length.
     public init(r: Data, s: Data) throws {
         let asn1 = try ECSignature.rsSigToASN1(r: r, s: s)
         self.r = r
@@ -56,6 +57,7 @@ public struct ECSignature {
     /// Initialize an ECSignature by providing an ASN1 encoded sequence containing the r and s values.
     /// - Parameter asn1: The r and s values of the signature encoded as an ASN1 sequence.
     /// - Returns: A new instance of `ECSignature`.
+    /// - Throws: An ECError if the ASN1 data can't be decoded.
     public init(asn1: Data) throws {
         self.asn1 = asn1
         let (r,s) = try ECSignature.asn1ToRSSig(asn1: asn1)

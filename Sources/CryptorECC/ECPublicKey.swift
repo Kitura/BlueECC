@@ -69,6 +69,9 @@ public class ECPublicKey {
      let pemKey = try ECPublicKey(key: publicKeyString)
      ```
      */
+    /// - Parameter key: The elliptic curve public key as a PEM string.
+    /// - Returns: An ECPublicKey.
+    /// - Throws: An ECError if the PEM string can't be decoded or is not a valid key.
     public convenience init(key: String) throws {
         let strippedKey = String(key.filter { !" \n\t\r".contains($0) })
         var pemComponents = strippedKey.components(separatedBy: "-----")
@@ -85,9 +88,12 @@ public class ECPublicKey {
         }
     }
     
-    /**
-    Initialize an ECPublicKey from `.der` file data.
-    */
+    /// Initialize an ECPublicKey from `.der` file data.  
+    /// This is equivalent to a PEM String that has had the "-----BEGIN PUBLIC KEY-----"
+    /// header and footer stripped and been base64 encoded to ASN1 Data.
+    /// - Parameter der: The elliptic curve public key Data.
+    /// - Returns: An ECPublicKey.
+    /// - Throws: An ECError if the Data can't be decoded or is not a valid key.
     public init(der: Data) throws {
         let (result, _) = ASN1.toASN1Element(data: der)
         guard case let ASN1.ASN1Element.seq(elements: seq) = result,

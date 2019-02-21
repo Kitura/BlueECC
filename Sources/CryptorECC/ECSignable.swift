@@ -23,7 +23,7 @@ import OpenSSL
 
 /// A protocol for signing an instance of some object to generate an `ECSignature`.
 @available(OSX 10.12, *)
-public protocol ECSignable {
+protocol ECSignable {
     /// Sign the object using ECDSA and produce an `ECSignature`.
     func sign(with: ECPrivateKey) throws -> ECSignature
 }
@@ -33,10 +33,11 @@ public protocol ECSignable {
 extension String: ECSignable {
     /// UTF8 encode the String to Data and sign it using the `ECPrivateKey`.
     /// The signing algorithm used is determined based on the private key's elliptic curve.
-    /// - Parameter ecPrivateKey: The Elliptic curve private key.
-    /// - Returns: An ECSignature or nil on failure.
-    public func sign(with: ECPrivateKey) throws -> ECSignature {
-        return try Data(self.utf8).sign(with: with)
+    /// - Parameter with key: The Elliptic curve private key.
+    /// - Returns: An ECSignature on failure.
+    /// - Throws: An ECError if a valid signature is unable to be created.
+    public func sign(with key: ECPrivateKey) throws -> ECSignature {
+        return try Data(self.utf8).sign(with: key)
     }
 }
 
@@ -45,9 +46,10 @@ extension String: ECSignable {
 extension Data: ECSignable {
     /// Sign the plaintext data using the provided `ECPrivateKey`.
     /// The signing algorithm used is determined based on the private key's elliptic curve.
-    /// - Parameter ecPrivateKey: The Elliptic curve private key.
-    /// - Returns: An ECSignature or nil on failure.
-    public func sign(with ecPrivateKey: ECPrivateKey) throws -> ECSignature {
+    /// - Parameter with key: The Elliptic curve private key.
+    /// - Returns: An ECSignature on failure.
+    /// - Throws: An ECError if a valid signature is unable to be created.
+    public func sign(with key: ECPrivateKey) throws -> ECSignature {
         #if os(Linux)
             let md_ctx = EVP_MD_CTX_new_wrapper()
             let evp_key = EVP_PKEY_new()
@@ -86,13 +88,13 @@ extension Data: ECSignable {
             return try ECSignature(asn1: Data(bytes: sig, count: sig_len))
         #else
             // MacOS, iOS ect.
-            let hash = ecPrivateKey.algorithm.digest(data: self)
+            let hash = key.algorithm.digest(data: self)
         
             // Memory storage for error from SecKeyCreateSignature
             var error: Unmanaged<CFError>? = nil
             // cfSignature is CFData that is ANS1 encoded as a sequence of two UInts (r and s)
-            guard let cfSignature = SecKeyCreateSignature(ecPrivateKey.nativeKey,
-                                                          ecPrivateKey.algorithm.signingAlgorithm,
+            guard let cfSignature = SecKeyCreateSignature(key.nativeKey,
+                                                          key.algorithm.signingAlgorithm,
                                                           hash as CFData,
                                                           &error)
             else {

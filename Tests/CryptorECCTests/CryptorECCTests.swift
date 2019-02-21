@@ -1,5 +1,5 @@
 import XCTest
-@testable import CryptorECC
+import CryptorECC
 
 @available(OSX 10.12, *)
 final class CryptorECCTests: XCTestCase {
