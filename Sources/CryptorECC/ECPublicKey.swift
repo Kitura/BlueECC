@@ -47,6 +47,7 @@ import OpenSSL
 public class ECPublicKey {
     #if os(Linux)
     typealias NativeKey = OpaquePointer?
+    let pubKeyBytes: Data
     deinit {
         EC_KEY_free(self.nativeKey)
     }
@@ -108,9 +109,10 @@ public class ECPublicKey {
         self.algorithm = try ECAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID)
         
         #if os(Linux)
+            self.pubKeyBytes = publicKeyData.drop(while: { $0 == 0x00})
             let bigNum = BN_new()
-            publicKeyData.withUnsafeBytes({ (publicKeyBytes: UnsafePointer<UInt8>) -> Void in
-                BN_bin2bn(publicKeyBytes, Int32(publicKeyData.count), bigNum)
+            publicKeyData.withUnsafeBytes({ (pubKeyBytes: UnsafePointer<UInt8>) -> Void in
+                BN_bin2bn(pubKeyBytes, Int32(publicKeyData.count), bigNum)
             })
             let ecKey = EC_KEY_new_by_curve_name(algorithm.curve)
             let ecGroup = EC_KEY_get0_group(ecKey)

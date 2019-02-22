@@ -1,7 +1,7 @@
 import XCTest
 import CryptorECC
 
-@available(OSX 10.12, *)
+@available(OSX 10.13, *)
 final class CryptorECCTests: XCTestCase {
     static var allTests = [
             ("test_simpleCycle", test_simpleCycle),
@@ -14,7 +14,13 @@ final class CryptorECCTests: XCTestCase {
             ("test_Pem384ECDSACycle", test_Pem384ECDSACycle),
             ("test_P8ES384Cycle", test_P8ES384Cycle),
             ("test_Pem512ECDSAVerify", test_Pem512ECDSAVerify),
+            ("test_P8ES512Cycle", test_P8ES512Cycle),
             ("test_Pem512ECDSACycle", test_Pem512ECDSACycle),
+            ("test_IncorrectPublicKey", test_IncorrectPublicKey),
+            ("test_IncorrectPlaintext", test_IncorrectPlaintext),
+            ("test_EncryptionCycle", test_EncryptionCycle),
+            ("test_MacEncrypted", test_MacEncrypted),
+            ("test_LinuxEncrypted", test_LinuxEncrypted),
         ]
     
     let ecPemPrivateKey = """
@@ -371,17 +377,38 @@ Mw==
         XCTAssertFalse(verified ?? false)
     }
     
-    func test_encryptionCycle() {        
+    func test_EncryptionCycle() {        
         guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPemPrivateKey) else {
             return XCTFail()
         }
         guard let ecdsaPublicKey = try? ECPublicKey(key: ecPemPublicKey) else {
             return XCTFail()
         }
-        let encrypted = try? "Hello world".encryptToString(with: ecdsaPublicKey)
+        let encrypted = try? "Hello world".encrypt(with: ecdsaPublicKey)
         let decrypted = try? encrypted?.decryptToString(with: ecdsaPrivateKey)
         XCTAssert(decrypted == "Hello world")
     }
+    
+    func test_MacEncrypted() {        
+        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPemPrivateKey) else {
+            return XCTFail()
+        }
+        let encrypted = "BDDIvmY4i0y064se0TcXoSnbYP0eyMMoCMT+3Jfxe7I8hlHYXMPpVMsOvjLWTe0Mj0/gMS1bMq9BCO2bPC0gC+Y2ZzMu9uGoqK7H/BnEjUIBjNGUKrA2VtahQaU="
+        let decrypted = try? encrypted.decryptToString(with: ecdsaPrivateKey)
+        XCTAssert(decrypted == "Hello world")
+    }
+    func test_LinuxEncrypted() {        
+        do {
+        let ecdsaPrivateKey = try ECPrivateKey(key: ecPemPrivateKey)
+        let encrypted = "BIcZ+Nlo+pQLaaY3hUcvYXbeleakSPp18KBlLGEV+IvuFNp+gdKWpdqJ602UWAd6OJBBaGvISzzLF1kVxLuHUFopIK3rPjxF4IXRLYMQpmoyQOl41vby/3kkZt0="
+        let decrypted = try encrypted.decryptToString(with: ecdsaPrivateKey)
+        XCTAssert(decrypted == "Hello world")
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
+    
 }
 
 extension Data {

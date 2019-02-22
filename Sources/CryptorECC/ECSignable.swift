@@ -53,7 +53,7 @@ extension Data: ECSignable {
         #if os(Linux)
             let md_ctx = EVP_MD_CTX_new_wrapper()
             let evp_key = EVP_PKEY_new()
-            guard EVP_PKEY_set1_EC_KEY(evp_key, .make(optional: ecPrivateKey.nativeKey)) == 1 else {
+            guard EVP_PKEY_set1_EC_KEY(evp_key, .make(optional: key.nativeKey)) == 1 else {
                 throw ECError.failedNativeKeyCreation
             }
             var pkey_ctx = EVP_PKEY_CTX_new(evp_key, nil)
@@ -62,7 +62,7 @@ extension Data: ECSignable {
                 EVP_MD_CTX_free_wrapper(md_ctx)
             }
         
-            guard EVP_DigestSignInit(md_ctx, &pkey_ctx, .make(optional: ecPrivateKey.algorithm.signingAlgorithm), nil, evp_key) == 1 else {
+            guard EVP_DigestSignInit(md_ctx, &pkey_ctx, .make(optional: key.algorithm.signingAlgorithm), nil, evp_key) == 1 else {
                 throw ECError.failedEvpInit
             }
         

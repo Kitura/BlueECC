@@ -48,6 +48,7 @@ public class ECPrivateKey {
     #if os(Linux)
         typealias NativeKey = OpaquePointer?
         deinit { EC_KEY_free(self.nativeKey) }
+        let pubKeyBytes: Data
     #else
         typealias NativeKey = SecKey
     #endif
@@ -143,6 +144,9 @@ public class ECPrivateKey {
         self.nativeKey =  try ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData,
                                                             publicKeyData: publicKeyData,
                                                             algorithm: algorithm)
+        #if os(Linux) 
+        self.pubKeyBytes = publicKeyData
+        #endif
     }
 
     /// Initialize an ECPrivateKey from a SEC1 `.der` file data.  
@@ -170,6 +174,9 @@ public class ECPrivateKey {
         self.nativeKey =  try ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData,
                                                             publicKeyData: publicKeyData,
                                                             algorithm: algorithm)
+        #if os(Linux) 
+        self.pubKeyBytes = publicKeyData.drop(while: { $0 == 0x00})
+        #endif
     }
 
 
