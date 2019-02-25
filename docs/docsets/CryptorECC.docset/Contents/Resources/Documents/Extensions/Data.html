@@ -66,10 +66,241 @@
         <section>
           <section class="section">
             <h1>Data</h1>
-            <p>Extension for signing <code>Data</code> with an <code><a href="../Classes/ECPrivateKey.html">ECPrivateKey</a></code> and the algorithm determined by the key&rsquo;s curve.</p>
+            <p>Extensions for encrypting, decrypting or signing <code>Data</code> using the appropriate algorithm determined by the key&rsquo;s curve with the provided <code><a href="../Classes/ECPrivateKey.html">ECPrivateKey</a></code> or <code><a href="../Classes/ECPublicKey.html">ECPublicKey</a></code>.</p>
 
           </section>
           <section class="section task-group-section">
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10Foundation4DataV10CryptorECCE15decryptToString4withSSAD12ECPrivateKeyC_tKF"></a>
+                    <a name="//apple_ref/swift/Method/decryptToString(with:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10Foundation4DataV10CryptorECCE15decryptToString4withSSAD12ECPrivateKeyC_tKF">decryptToString(with:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Decrypt the Data using the <code><a href="../Classes/ECPrivateKey.html">ECPrivateKey</a></code> and decode the plaintext to a UTF8 String.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    An ECError if the Encrypted data fails to be decrypted.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">decryptToString</span><span class="p">(</span><span class="n">with</span> <span class="nv">key</span><span class="p">:</span> <span class="kt"><a href="../Classes/ECPrivateKey.html">ECPrivateKey</a></span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>ecPrivateKey</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The Elliptic curve private key.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The plaintext UTF8 String.</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10Foundation4DataV10CryptorECCE7decrypt4withAcD12ECPrivateKeyC_tKF"></a>
+                    <a name="//apple_ref/swift/Method/decrypt(with:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10Foundation4DataV10CryptorECCE7decrypt4withAcD12ECPrivateKeyC_tKF">decrypt(with:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Decrypt the encrypted data using the provided <code><a href="../Classes/ECPrivateKey.html">ECPrivateKey</a></code>.
+The signing algorithm used is determined based on the private key&rsquo;s elliptic curve.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    An ECError if the Encrypted data fails to be decrypted.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">decrypt</span><span class="p">(</span><span class="n">with</span> <span class="nv">key</span><span class="p">:</span> <span class="kt"><a href="../Classes/ECPrivateKey.html">ECPrivateKey</a></span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">Data</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>ecPrivateKey</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The Elliptic curve private key.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The plaintext Data.</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10Foundation4DataV10CryptorECCE15encryptToString4withSSAD11ECPublicKeyC_tKF"></a>
+                    <a name="//apple_ref/swift/Method/encryptToString(with:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10Foundation4DataV10CryptorECCE15encryptToString4withSSAD11ECPublicKeyC_tKF">encryptToString(with:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Encrypt the data using the <code><a href="../Classes/ECPublicKey.html">ECPublicKey</a></code>, then base64Encode the data to produce the encrypted String.
+The encryption algorithm used is determined based on the key&rsquo;s elliptic curve.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    An ECError is the plaintext fails to be encrypted.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">encryptToString</span><span class="p">(</span><span class="n">with</span> <span class="nv">key</span><span class="p">:</span> <span class="kt"><a href="../Classes/ECPublicKey.html">ECPublicKey</a></span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>ecPrivateKey</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The Elliptic curve private key.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The encrypted Data.</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10Foundation4DataV10CryptorECCE7encrypt4withAcD11ECPublicKeyC_tKF"></a>
+                    <a name="//apple_ref/swift/Method/encrypt(with:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10Foundation4DataV10CryptorECCE7encrypt4withAcD11ECPublicKeyC_tKF">encrypt(with:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Encrypt the data using the <code><a href="../Classes/ECPublicKey.html">ECPublicKey</a></code>.
+The encryption algorithm used is determined based on the key&rsquo;s elliptic curve.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    An ECError is the plaintext fails to be encrypted.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">encrypt</span><span class="p">(</span><span class="n">with</span> <span class="nv">key</span><span class="p">:</span> <span class="kt"><a href="../Classes/ECPublicKey.html">ECPublicKey</a></span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">Data</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>ecPrivateKey</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The Elliptic curve private key.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The encrypted Data.</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
             <div class="task-group">
               <ul>
                 <li class="item">
@@ -114,7 +345,7 @@ The signing algorithm used is determined based on the private key&rsquo;s ellipt
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/IBM-Swift/BlueECC" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2019-02-21)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/IBM-Swift/BlueECC" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2019-02-25)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

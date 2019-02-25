@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>ECDecryptable Protocol Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Protocol/ECDecryptable" class="dashAnchor"></a>
+    <a title="ECDecryptable Protocol Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html">CryptorECC Docs</a> (100% documented)</p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html">CryptorECC Reference</a>
+        <img id="carat" src="../img/carat.png" />
+        ECDecryptable Protocol Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/ECPrivateKey.html">ECPrivateKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ECPublicKey.html">ECPublicKey</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Extensions/Data.html">Data</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/String.html">String</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Protocols/ECDecryptable.html">ECDecryptable</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/ECError.html">ECError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ECSignature.html">ECSignature</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>ECDecryptable</h1>
+              <div class="declaration">
+                <div class="language">
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">ECDecryptable</span></code></pre>
+
+                </div>
+              </div>
+            <p>A protocol for decrypting an instance of some object to generate some plaintext data.</p>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC13ECDecryptableP7decrypt4with10Foundation4DataVAA12ECPrivateKeyC_tKF"></a>
+                    <a name="//apple_ref/swift/Method/decrypt(with:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC13ECDecryptableP7decrypt4with10Foundation4DataVAA12ECPrivateKeyC_tKF">decrypt(with:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Decrypt the object using ECIES and produce some plaintext <code>Data</code>.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">decrypt</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt"><a href="../Classes/ECPrivateKey.html">ECPrivateKey</a></span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">Data</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC13ECDecryptableP15decryptToString4withSSAA12ECPrivateKeyC_tKF"></a>
+                    <a name="//apple_ref/swift/Method/decryptToString(with:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC13ECDecryptableP15decryptToString4withSSAA12ECPrivateKeyC_tKF">decryptToString(with:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Decrypt the object using ECIES and produce some plaintext <code>String</code>.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">decryptToString</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt"><a href="../Classes/ECPrivateKey.html">ECPrivateKey</a></span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2019 <a class="link" href="https://github.com/IBM-Swift/BlueECC" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2019-02-25)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>

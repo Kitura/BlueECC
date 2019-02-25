@@ -35,15 +35,21 @@ protocol ECEncryptable {
 @available(OSX 10.13, *)
 extension String: ECEncryptable {
     
-    /// Encrypt the String using ECIES and encode it to a Base64Encoded String.
+    /// UTF8 encode the String to Data and encrypt it using the `ECPublicKey`,
+    /// then base64Encode the data to produce the encrypted String.
+    /// The encryption algorithm used is determined based on the key's elliptic curve.
+    /// - Parameter ecPrivateKey: The Elliptic curve private key.
+    /// - Returns: The encrypted Base64Encoded String.
+    /// - Throws: An ECError is the plaintext fails to be encrypted.
     public func encryptToString(with key: ECPublicKey) throws -> String {
         return try Data(self.utf8).encryptToString(with: key)
     }
     
-    /// UTF8 encode the String to Data and sign it using the `ECPrivateKey`.
-    /// The signing algorithm used is determined based on the private key's elliptic curve.
+    /// UTF8 encode the String to Data and encrypt it using the `ECPublicKey`.
+    /// The encryption algorithm used is determined based on the key's elliptic curve.
     /// - Parameter ecPrivateKey: The Elliptic curve private key.
-    /// - Returns: An ECSignature or nil on failure.
+    /// - Returns: The encrypted Data.
+    /// - Throws: An ECError is the plaintext fails to be encrypted.
     public func encrypt(with key: ECPublicKey) throws -> Data {
         return try Data(self.utf8).encrypt(with: key)
     }
@@ -53,16 +59,21 @@ extension String: ECEncryptable {
 @available(OSX 10.13, *)
 extension Data: ECEncryptable {
     
-    /// Encrypt the Data using ECIES and encode it to a Base64Encoded String.
+    /// Encrypt the data using the `ECPublicKey`, then base64Encode the data to produce the encrypted String.
+    /// The encryption algorithm used is determined based on the key's elliptic curve.
+    /// - Parameter ecPrivateKey: The Elliptic curve private key.
+    /// - Returns: The encrypted Data.
+    /// - Throws: An ECError is the plaintext fails to be encrypted.
     public func encryptToString(with key: ECPublicKey) throws -> String {
         let encryptedData = try self.encrypt(with: key)
         return encryptedData.base64EncodedString()
     }
     
-    /// Sign the plaintext data using the provided `ECPrivateKey`.
-    /// The signing algorithm used is determined based on the private key's elliptic curve.
+    /// Encrypt the data using the `ECPublicKey`.
+    /// The encryption algorithm used is determined based on the key's elliptic curve.
     /// - Parameter ecPrivateKey: The Elliptic curve private key.
-    /// - Returns: An ECSignature or nil on failure.
+    /// - Returns: The encrypted Data.
+    /// - Throws: An ECError is the plaintext fails to be encrypted.
     @available(OSX 10.13, *)
     public func encrypt(with key: ECPublicKey) throws -> Data {
         #if os(Linux)

@@ -352,6 +352,87 @@ They must be the same length and either 32, 48 or 66 bytes (Depending on the cur
                 <li class="item">
                   <div>
                     <code>
+                    <a name="/s:10CryptorECC7ECErrorV25failedEncryptionAlgorithmACvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/failedEncryptionAlgorithm" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC7ECErrorV25failedEncryptionAlgorithmACvpZ">failedEncryptionAlgorithm</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Error thrown when the encryption algorithm could not encrypt the plaintext.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">failedEncryptionAlgorithm</span> <span class="o">=</span> <span class="kt">ECError</span><span class="p">(</span><span class="nv">localizedDescription</span><span class="p">:</span> <span class="s">"Encryption algorithm failed to encrypt the data"</span><span class="p">,</span> <span class="nv">internalError</span><span class="p">:</span> <span class="o">.</span><span class="n">failedEncryptionAlgorithm</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC7ECErrorV25failedDecryptionAlgorithmACvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/failedDecryptionAlgorithm" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC7ECErrorV25failedDecryptionAlgorithmACvpZ">failedDecryptionAlgorithm</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Error thrown when the decryption algorithm could not decrypt the encrypted Data.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">failedDecryptionAlgorithm</span> <span class="o">=</span> <span class="kt">ECError</span><span class="p">(</span><span class="nv">localizedDescription</span><span class="p">:</span> <span class="s">"Decryption algorithm failed to decrypt the data"</span><span class="p">,</span> <span class="nv">internalError</span><span class="p">:</span> <span class="o">.</span><span class="n">failedDecryptionAlgorithm</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10CryptorECC7ECErrorV18failedUTF8DecodingACvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/failedUTF8Decoding" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10CryptorECC7ECErrorV18failedUTF8DecodingACvpZ">failedUTF8Decoding</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Error thrown when the Data could not be decoded into a UTF8 String.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">failedUTF8Decoding</span> <span class="o">=</span> <span class="kt">ECError</span><span class="p">(</span><span class="nv">localizedDescription</span><span class="p">:</span> <span class="s">"Data could not be decoded as a UTF8 String"</span><span class="p">,</span> <span class="nv">internalError</span><span class="p">:</span> <span class="o">.</span><span class="n">failedUTF8Decoding</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
                     <a name="/s:10CryptorECC7ECErrorV2eeoiySbAC_ACtFZ"></a>
                     <a name="//apple_ref/swift/Method/==(_:_:)" class="dashAnchor"></a>
                     <a class="token" href="#/s:10CryptorECC7ECErrorV2eeoiySbAC_ACtFZ">==(_:_:)</a>
@@ -381,7 +462,7 @@ They must be the same length and either 32, 48 or 66 bytes (Depending on the cur
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/IBM-Swift/BlueECC" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2019-02-21)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/IBM-Swift/BlueECC" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2019-02-25)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

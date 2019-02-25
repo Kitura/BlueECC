@@ -87,7 +87,7 @@
 </p>
 <h1 id='blueecc' class='heading'>BlueECC</h1>
 
-<p>A cross platform swift implementation of Elliptic Curve Digital Signature Algorithm (ECDSA).</p>
+<p>A cross platform swift implementation of Elliptic Curve Digital Signature Algorithm (ECDSA) and Elliptic curve Integrated Encryption Scheme (ECIES).</p>
 <h2 id='usage' class='heading'>Usage</h2>
 <h4 id='add-dependencies' class='heading'>Add dependencies</h4>
 
@@ -107,7 +107,7 @@
 <p>Generate your Elliptic curve private key using a third party provider:</p>
 
 <p>You can generate a <code>p-256</code> private key as a <code>.p8</code> file for Apple services from <a href="https://developer.apple.com/account/ios/authkey/">https://developer.apple.com/account/ios/authkey</a>. This will produce a key that should be formatted as follows:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">p8PrivateKey</span> <span class="o">=</span> 
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">p8PrivateKey</span> <span class="o">=</span>
 <span class="s">"""
 -----BEGIN PRIVATE KEY-----
 MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQglf7ztYnsaHX2yiHJ
@@ -132,7 +132,7 @@ $ openssl ecparam -name secp521r1 -genkey -noout -out key.pem
 </code></pre>
 
 <p>These keys will be formatted as follows:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">pemPrivateKey</span> <span class="o">=</span> 
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">pemPrivateKey</span> <span class="o">=</span>
 <span class="s">"""
 -----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIJX+87WJ7Gh19sohyZnhxZeXYNOcuGv4Q+8MLge4UkaZoAoGCCqGSM49
@@ -143,7 +143,7 @@ KVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
 </code></pre>
 
 <p>The key can then be used to initialize an <code><a href="Classes/ECPrivateKey.html">ECPrivateKey</a></code> instance:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">ecdsaPrivateKey</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">ECPrivateKey</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="n">pemPrivateKey</span><span class="p">)</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">eccPrivateKey</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">ECPrivateKey</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="n">pemPrivateKey</span><span class="p">)</span>
 </code></pre>
 <h4 id='elliptic-curve-public-key' class='heading'>Elliptic curve public  key</h4>
 
@@ -152,7 +152,7 @@ KVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
 </code></pre>
 
 <p>This will produce a public key formatted as follows:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">pemPublicKey</span> <span class="o">=</span> 
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">pemPublicKey</span> <span class="o">=</span>
 <span class="s">"""
 -----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEikc5m6C2xtDWeeAeT18WElO37zvF
@@ -162,7 +162,7 @@ Oz8p4kAlhvgIHN23XIClNESgKVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
 </code></pre>
 
 <p>These keys can then be used to initialize an <code><a href="Classes/ECPrivateKey.html">ECPrivateKey</a></code> instance:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">ecdsaPublicKey</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">ECPublicKey</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="n">pemPublicKey</span><span class="p">)</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">eccPublicKey</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">ECPublicKey</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="n">pemPublicKey</span><span class="p">)</span>
 </code></pre>
 <h4 id='signing-string-or-data' class='heading'>Signing String or Data</h4>
 
@@ -174,16 +174,34 @@ Oz8p4kAlhvgIHN23XIClNESgKVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
 
 <p>This lets you sign your plaintext using an EC private key:</p>
 <pre class="highlight swift"><code><span class="k">let</span> <span class="nv">message</span> <span class="o">=</span> <span class="s">"hello world"</span>
-<span class="k">let</span> <span class="nv">signature</span> <span class="o">=</span> <span class="k">try</span> <span class="n">message</span><span class="o">.</span><span class="nf">sign</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="n">ecdsaPrivateKey</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">signature</span> <span class="o">=</span> <span class="k">try</span> <span class="n">message</span><span class="o">.</span><span class="nf">sign</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="n">eccPrivateKey</span><span class="p">)</span>
 </code></pre>
 <h4 id='verifying-the-signature' class='heading'>Verifying the signature</h4>
 
 <p>Use the public key to verify the signature for the plaintext:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">verified</span> <span class="o">=</span> <span class="n">signature</span><span class="o">.</span><span class="nf">verify</span><span class="p">(</span><span class="nv">plaintext</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="n">ecdsaPublicKey</span><span class="p">)</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">verified</span> <span class="o">=</span> <span class="n">signature</span><span class="o">.</span><span class="nf">verify</span><span class="p">(</span><span class="nv">plaintext</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="n">eccPublicKey</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">verified</span> <span class="p">{</span>
     <span class="nf">print</span><span class="p">(</span><span class="s">"Signature is valid for provided plaintext"</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
+<h4 id='encrypting-string-or-data' class='heading'>Encrypting String or Data</h4>
+
+<p>Use the public key to encrypt your plaintext String or Data to encrypted Data or an encrypted Base64Encoded String:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">encryptedData</span> <span class="o">=</span> <span class="s">"Hello World"</span><span class="o">.</span><span class="nf">encrypt</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="n">eccPublicKey</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">encryptedString</span> <span class="o">=</span> <span class="s">"Hello World"</span><span class="o">.</span><span class="nf">encryptToString</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="n">eccPublicKey</span><span class="p">)</span>
+</code></pre>
+<h4 id='decrypting-to-plaintext' class='heading'>Decrypting to plaintext</h4>
+
+<p>Use the private key to decrypt the encrypted Data or Base64Encoded String to plaintext Data or UTF8 String:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">decryptedData</span> <span class="o">=</span> <span class="n">encryptedData</span><span class="o">.</span><span class="nf">decrypt</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="n">eccPrivateKey</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">decryptedString</span> <span class="o">=</span> <span class="n">encryptedString</span><span class="o">.</span><span class="nf">decryptToString</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="n">eccPrivateKey</span><span class="p">)</span>
+</code></pre>
+
+<p><strong>Note:</strong></p>
+
+<p>Cross platform encryption and decryption is currently only supported with <code>prime256v1</code> curves using <code>kSecKeyAlgorithmECIESEncryptionStandardVariableIVX963SHA256AESGCM</code>.  </p>
+
+<p><code>secp384r1</code> and <code>secp521r1</code> does not support linux encryption with apple platform decryption and vice versa. As such the linux implementation is likely to change in a future release.</p>
 
 <p>For more information visit our <a href="https://ibm-swift.github.io/BlueECC/index.html">API reference</a>.</p>
 <h2 id='community' class='heading'>Community</h2>
@@ -196,7 +214,7 @@ Oz8p4kAlhvgIHN23XIClNESgKVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/IBM-Swift/BlueECC" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2019-02-21)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/IBM-Swift/BlueECC" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2019-02-25)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
