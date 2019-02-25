@@ -22,7 +22,7 @@
 
 # BlueECC
 
-A cross platform swift implementation of Elliptic Curve Digital Signature Algorithm (ECDSA) and Elliptic curve Integrated Encryption Scheme (ECIES).
+A cross platform Swift implementation of Elliptic Curve Digital Signature Algorithm (ECDSA) and Elliptic Curve Integrated Encryption Scheme (ECIES). This allows you to sign, verify, encrypt and decrypt using elliptic curve keys.
 
 ## Usage
 
@@ -50,7 +50,7 @@ import CryptorECC
 
 #### Elliptic curve private key
 
-Generate your Elliptic curve private key using a third party provider:
+Generate your elliptic curve private key using a third party provider:
 
 You can generate a `p-256` private key as a `.p8` file for Apple services from [https://developer.apple.com/account/ios/authkey](https://developer.apple.com/account/ios/authkey/). This will produce a key that should be formatted as follows:
 ```swift
@@ -99,7 +99,7 @@ let eccPrivateKey = try ECPrivateKey(key: pemPrivateKey)
 
 ####  Elliptic curve public  key
 
-Use OpenSSL to generate an EC public key `.pem` file from any of the above EC private key files:
+Use OpenSSL to generate an elliptic curve public key `.pem` file from any of the above elliptic curve private key files:
 ```
 $ openssl ec -in key.pem -pubout -out public.pem
 ```
@@ -165,7 +165,7 @@ let decryptedString = encryptedString.decryptToString(with: eccPrivateKey)
 
 Cross platform encryption and decryption is currently only supported with `prime256v1` curves using `kSecKeyAlgorithmECIESEncryptionStandardVariableIVX963SHA256AESGCM`.  
 
-`secp384r1` and `secp521r1` does not support linux encryption with apple platform decryption and vice versa. As such the linux implementation is likely to change in a future release.
+`secp384r1` and `secp521r1` does not support Linux encryption with Apple platform decryption and vice versa. As such the Linux implementation is likely to change in a future release.
 
 
 For more information visit our [API reference](https://ibm-swift.github.io/BlueECC/index.html).
