@@ -22,7 +22,7 @@
 
 # BlueECC
 
-A cross platform swift implementation of Elliptic Curve Digital Signature Algorithm (ECDSA).
+A cross platform swift implementation of Elliptic Curve Digital Signature Algorithm (ECDSA) and Elliptic curve Integrated Encryption Scheme (ECIES).
 
 ## Usage
 
@@ -54,7 +54,7 @@ Generate your Elliptic curve private key using a third party provider:
 
 You can generate a `p-256` private key as a `.p8` file for Apple services from [https://developer.apple.com/account/ios/authkey](https://developer.apple.com/account/ios/authkey/). This will produce a key that should be formatted as follows:
 ```swift
-let p8PrivateKey = 
+let p8PrivateKey =
 """
 -----BEGIN PRIVATE KEY-----
 MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQglf7ztYnsaHX2yiHJ
@@ -82,7 +82,7 @@ $ openssl ecparam -name secp521r1 -genkey -noout -out key.pem
 ```
 These keys will be formatted as follows:
 ```swift
-let pemPrivateKey = 
+let pemPrivateKey =
 """
 -----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIJX+87WJ7Gh19sohyZnhxZeXYNOcuGv4Q+8MLge4UkaZoAoGCCqGSM49
@@ -94,7 +94,7 @@ KVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
 
 The key can then be used to initialize an `ECPrivateKey` instance:
 ```swift
-let ecdsaPrivateKey = try ECPrivateKey(key: pemPrivateKey)
+let eccPrivateKey = try ECPrivateKey(key: pemPrivateKey)
 ```
 
 ####  Elliptic curve public  key
@@ -105,7 +105,7 @@ $ openssl ec -in key.pem -pubout -out public.pem
 ```
 This will produce a public key formatted as follows:
 ```swift
-let pemPublicKey = 
+let pemPublicKey =
 """
 -----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEikc5m6C2xtDWeeAeT18WElO37zvF
@@ -115,7 +115,7 @@ Oz8p4kAlhvgIHN23XIClNESgKVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
 ```
 These keys can then be used to initialize an `ECPrivateKey` instance:
 ```swift
-let ecdsaPublicKey = try ECPublicKey(key: pemPublicKey)
+let eccPublicKey = try ECPublicKey(key: pemPublicKey)
 ```
 
 #### Signing String or Data
@@ -131,18 +131,42 @@ public protocol ECSignable {
 This lets you sign your plaintext using an EC private key:
 ```swift
 let message = "hello world"
-let signature = try message.sign(with: ecdsaPrivateKey)
+let signature = try message.sign(with: eccPrivateKey)
 ```
 
 #### Verifying the signature
 
 Use the public key to verify the signature for the plaintext:
 ```swift
-let verified = signature.verify(plaintext: message, using: ecdsaPublicKey)
+let verified = signature.verify(plaintext: message, using: eccPublicKey)
 if verified {
     print("Signature is valid for provided plaintext")
 }
 ```
+
+#### Encrypting String or Data
+
+Use the public key to encrypt your plaintext String or Data to encrypted Data or an encrypted Base64Encoded String:
+```swift
+let encryptedData = "Hello World".encrypt(with: eccPublicKey)
+let encryptedString = "Hello World".encryptToString(with: eccPublicKey)
+```
+
+#### Decrypting to plaintext
+
+Use the private key to decrypt the encrypted Data or Base64Encoded String to plaintext Data or UTF8 String:
+
+```swift
+let decryptedData = encryptedData.decrypt(with: eccPrivateKey)
+let decryptedString = encryptedString.decryptToString(with: eccPrivateKey)
+```
+
+**Note:**
+
+Cross platform encryption and decryption is currently only supported with `prime256v1` curves using `kSecKeyAlgorithmECIESEncryptionStandardVariableIVX963SHA256AESGCM`.  
+
+`secp384r1` and `secp521r1` does not support linux encryption with apple platform decryption and vice versa. As such the linux implementation is likely to change in a future release.
+
 
 For more information visit our [API reference](https://ibm-swift.github.io/BlueECC/index.html).
 

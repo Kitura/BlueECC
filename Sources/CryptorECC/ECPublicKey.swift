@@ -43,7 +43,7 @@ import OpenSSL
  let verified = signature.verify(plaintext: "Hello world", using: publicKey)
  ```
  */
-@available(OSX 10.12, *)
+@available(OSX 10.13, *)
 public class ECPublicKey {
     #if os(Linux)
     typealias NativeKey = OpaquePointer?

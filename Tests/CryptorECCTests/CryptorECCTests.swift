@@ -21,6 +21,8 @@ final class CryptorECCTests: XCTestCase {
             ("test_EncryptionCycle", test_EncryptionCycle),
             ("test_MacEncrypted", test_MacEncrypted),
             ("test_LinuxEncrypted", test_LinuxEncrypted),
+            ("test_EncryptionCycle384", test_EncryptionCycle384),
+            ("test_EncryptionCycle512", test_EncryptionCycle512),
         ]
     
     let ecPemPrivateKey = """
@@ -408,6 +410,75 @@ Mw==
             XCTFail()
         }
     }
+    
+    func test_EncryptionCycle384() {        
+        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPem384PrivateKey) else {
+            return XCTFail()
+        }
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem384PublicKey) else {
+            return XCTFail()
+        }
+        let encrypted = try? "Hello world".encrypt(with: ecdsaPublicKey)
+        let decrypted = try? encrypted?.decryptToString(with: ecdsaPrivateKey)
+        XCTAssert(decrypted == "Hello world")
+    }
+    
+    // Cross platform encryption is not currently working with 384 curves
+
+//    func test_MacEncrypted384() {        
+//        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPem384PrivateKey) else {
+//            return XCTFail()
+//        }
+//        let encrypted = "BGwOw2eMwGVr6MRd33dv7Fge7JvWZ7uvjC3b+U1QPYEEYZT/HJpY3DO/CHW+xOm2v0NaTfQ5O7MwtEtz+PZqVe4LQg25lkdfHAB0Ve8pBkGk+YMw9S08w7puT6VdFkRIy5eSI2F7H6NBve6oheV+fQTmFiXss/nfnyPiZA=="
+//        let decrypted = try? encrypted.decryptToString(with: ecdsaPrivateKey)
+//        XCTAssert(decrypted == "Hello world")
+//    }
+//    func test_LinuxEncrypted384() {        
+//        do {
+//            let ecdsaPrivateKey = try ECPrivateKey(key: ecPem384PrivateKey)
+//            let encrypted = "BN3zhcTuL5vb8R2FBbQ1Tkt2ovkBtsgYzJmVgGhClc8IDAHDHYXcMWCBBws67i73EpvqkPS2wZCKkeHDmlLb/Exx2BCL3X12LJysfW6u1akOKJzTuGgyo/aZ556W31NNL5oD2hHmm2VJ6uWCI9lRemyeU7ru3WuchJkStg=="
+//            let decrypted = try encrypted.decryptToString(with: ecdsaPrivateKey)
+//            XCTAssert(decrypted == "Hello world")
+//        } catch {
+//            print(error)
+//            XCTFail()
+//        }
+//    }
+    
+    func test_EncryptionCycle512() {        
+        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPem512PrivateKey) else {
+            return XCTFail()
+        }
+        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem512PublicKey) else {
+            return XCTFail()
+        }
+        let encrypted = try? "Hello world".encrypt(with: ecdsaPublicKey)
+        let decrypted = try? encrypted?.decryptToString(with: ecdsaPrivateKey)
+        XCTAssert(decrypted == "Hello world")
+    }
+    
+    // Cross platform encryption is not currently working with 512 curves
+    
+//    func test_MacEncrypted512() {        
+//        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPem512PrivateKey) else {
+//            return XCTFail()
+//        }
+//        let encrypted = "BAAjkulK0eJasiopYUDk2IkWl4g3w4M/QBZ2d06+cC/dQQ9IkQhjjjC0mt/QPMSRXi4LAhmaFpdAaCcXF9pxejfWCQEDCP6E0Xp9crLahbvhvUflup6EKlmpZG2UfgYpejwbyK3fMuBhUrHPlNwvZCgXBT7eTHTsd1OEvta6NYjby3h8kFTGtJeNWRNrSjjGznvbLoRvgBkrMph9osRmmw=="
+//        let decrypted = try? encrypted.decryptToString(with: ecdsaPrivateKey)
+//        XCTAssert(decrypted == "Hello world")
+//    }
+//    
+//    func test_LinuxEncrypted512() {        
+//        do {
+//            let ecdsaPrivateKey = try ECPrivateKey(key: ecPem512PrivateKey)
+//            let encrypted = "BACUoLxrhj+cJXZoYINcU18yaHRBLgc2BcYsE7hUmin55Xc6eAgU08Gou331z+7DHjDRMpp9XhLqt3BnsrSGRa1LzABxhh/6ulXFAG0bchxOp/7DUZcrrdRI3IlDOMHBja2PwE1WDqjCHHwMsicSSMMyD6fIIyqHN2zJito9I2AeEs2QGbGZC1GTrIpZcPuOGHsMezcbFQTSc4/EAyDamw=="
+//            let decrypted = try encrypted.decryptToString(with: ecdsaPrivateKey)
+//            XCTAssert(decrypted == "Hello world")
+//        } catch {
+//            print(error)
+//            XCTFail()
+//        }
+//    }
     
 }
 

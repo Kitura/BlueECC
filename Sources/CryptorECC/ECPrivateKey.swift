@@ -43,7 +43,7 @@ import OpenSSL
  let signature = "Hello world".sign(with: privateKey)
  ```
  */
-@available(OSX 10.12, *)
+@available(OSX 10.13, *)
 public class ECPrivateKey {
     #if os(Linux)
         typealias NativeKey = OpaquePointer?

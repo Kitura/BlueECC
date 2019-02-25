@@ -78,13 +78,12 @@ extension Data: ECDecryptable {
     @available(OSX 10.13, *)
     public func decrypt(with key: ECPrivateKey) throws -> Data {
         #if os(Linux)
-        // Not implemented
         // Initialize the decryption context.
         let rsaDecryptCtx = EVP_CIPHER_CTX_new()
         EVP_CIPHER_CTX_init_wrapper(rsaDecryptCtx)
         
         let tagLength = 16
-        let encKeyLength = 65
+        let encKeyLength = key.algorithm.keySize
         let encryptedDataLength = Int(self.count) - encKeyLength - tagLength
         // Extract encryptedAESKey, encryptedData, GCM tag from data
         let encryptedKey = self.subdata(in: 0..<encKeyLength)
@@ -102,7 +101,7 @@ extension Data: ECDecryptable {
             symKey.deallocate()
             decrypted.deallocate()
             #else
-            symKey.deallocate(capacity: 16)
+            symKey.deallocate(capacity: skey_len)
             decrypted.deallocate(capacity: Int(encryptedData.count + 16))
             #endif
         }
@@ -127,7 +126,7 @@ extension Data: ECDecryptable {
         var decMsgLen: Int32 = 0
         
         // get aes key and iv using ANSI x9.63 Key Derivation Function
-        let symKeyData = Data(bytes: symKey, count: 32)
+        let symKeyData = Data(bytes: symKey, count: skey_len)
         let counterData = Data(bytes: [0x00, 0x00, 0x00, 0x01])
         let preHashKey = symKeyData + counterData + encryptedKey
         let hashedKey = key.algorithm.digest(data: preHashKey)
@@ -175,7 +174,7 @@ extension Data: ECDecryptable {
         #else
         var error: Unmanaged<CFError>? = nil
         guard let eData = SecKeyCreateDecryptedData(key.nativeKey,
-                                                    SecKeyAlgorithm.eciesEncryptionStandardVariableIVX963SHA256AESGCM,
+                                                    key.algorithm.curve,
                                                     self as CFData,
                                                     &error)
         else {
