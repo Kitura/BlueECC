@@ -21,7 +21,7 @@ import Foundation
     import OpenSSL
 #endif
 
-// Information about the Elliptic curve algorithm that will be used for signing/verifying.
+// Information about the elliptic curve algorithm that will be used for signing/verifying.
 @available(OSX 10.13, *)
 struct ECAlgorithm {
     #if os(Linux)

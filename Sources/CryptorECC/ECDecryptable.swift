@@ -31,15 +31,14 @@ protocol ECDecryptable {
     func decryptToString(with: ECPrivateKey) throws -> String
 }
 
-/// Extensions for encrypting, decrypting or signing a `String` by converting it to utf8 Data, then using the appropriate algorithm determined by the key's curve with the provided `ECPrivateKey` or `ECPublicKey`.
+/// Extensions for encrypting, decrypting or signing a `String` by converting it to UTF8 Data, then using the appropriate algorithm determined by the key's curve with the provided `ECPrivateKey` or `ECPublicKey`.
 @available(OSX 10.13, *)
 extension String: ECDecryptable {
 
     /// Convert the String to Base64Encoded `Data` and decrypt it using the `ECPrivateKey`.
-    /// - Parameter ecPrivateKey: The Elliptic curve private key.
+    /// - Parameter ecPrivateKey: The elliptic curve private key.
     /// - Returns: The plaintext Data.
     /// - Throws: An ECError if the Encrypted data fails to be decrypted.
-    @available(OSX 10.13, *)
     public func decrypt(with key: ECPrivateKey) throws -> Data {
         guard let encrypted = Data(base64Encoded: self) else {
             throw ECError.failedBase64Encoding
@@ -49,10 +48,9 @@ extension String: ECDecryptable {
     
     /// Convert the String to Base64Encoded `Data` and decrypt it using the `ECPrivateKey`
     /// and decode the plaintext to a UTF8 String.
-    /// - Parameter ecPrivateKey: The Elliptic curve private key.
+    /// - Parameter ecPrivateKey: The elliptic curve private key.
     /// - Returns: The plaintext UTF8 String.
     /// - Throws: An ECError if the Encrypted data fails to be decrypted.
-    @available(OSX 10.13, *)
     public func decryptToString(with key: ECPrivateKey) throws -> String {
         guard let encrypted = Data(base64Encoded: self) else {
             throw ECError.failedBase64Encoding
@@ -62,14 +60,13 @@ extension String: ECDecryptable {
 }
 
 /// Extensions for encrypting, decrypting or signing `Data` using the appropriate algorithm determined by the key's curve with the provided `ECPrivateKey` or `ECPublicKey`.
-@available(OSX 10.12, *)
+@available(OSX 10.13, *)
 extension Data: ECDecryptable {
     
     /// Decrypt the Data using the `ECPrivateKey` and decode the plaintext to a UTF8 String.
-    /// - Parameter ecPrivateKey: The Elliptic curve private key.
+    /// - Parameter ecPrivateKey: The elliptic curve private key.
     /// - Returns: The plaintext UTF8 String.
     /// - Throws: An ECError if the Encrypted data fails to be decrypted.
-    @available(OSX 10.13, *)
     public func decryptToString(with key: ECPrivateKey) throws -> String {
         let decryptedData = try self.decrypt(with: key)
         guard let decryptedString = String(data: decryptedData, encoding: .utf8) else {
@@ -80,10 +77,9 @@ extension Data: ECDecryptable {
     
     /// Decrypt the encrypted data using the provided `ECPrivateKey`.
     /// The signing algorithm used is determined based on the private key's elliptic curve.
-    /// - Parameter ecPrivateKey: The Elliptic curve private key.
+    /// - Parameter ecPrivateKey: The elliptic curve private key.
     /// - Returns: The plaintext Data.
     /// - Throws: An ECError if the Encrypted data fails to be decrypted.
-    @available(OSX 10.13, *)
     public func decrypt(with key: ECPrivateKey) throws -> Data {
         #if os(Linux)
             // Initialize the decryption context.

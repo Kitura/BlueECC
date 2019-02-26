@@ -31,14 +31,15 @@ protocol ECEncryptable {
     func encryptToString(with: ECPublicKey) throws -> String
 }
 
-/// Extension for signing a `String` by converting it to utf8 Data and signing the bytes.
+/// Extension for signing a `String` by converting it to UTF8 Data and signing the bytes.
 @available(OSX 10.13, *)
 extension String: ECEncryptable {
     
     /// UTF8 encode the String to Data and encrypt it using the `ECPublicKey`,
     /// then base64Encode the data to produce the encrypted String.
-    /// The encryption algorithm used is determined based on the key's elliptic curve.
-    /// - Parameter ecPrivateKey: The Elliptic curve private key.
+    /// This either uses the `SecKeyAlgorithm`: `eciesEncryptionStandardVariableIVX963SHA256AESGCM`,
+    /// or the equivalent OpenSSL implementation.
+    /// - Parameter with key: The elliptic curve public key.
     /// - Returns: The encrypted Base64Encoded String.
     /// - Throws: An ECError is the plaintext fails to be encrypted.
     public func encryptToString(with key: ECPublicKey) throws -> String {
@@ -46,8 +47,9 @@ extension String: ECEncryptable {
     }
     
     /// UTF8 encode the String to Data and encrypt it using the `ECPublicKey`.
-    /// The encryption algorithm used is determined based on the key's elliptic curve.
-    /// - Parameter ecPrivateKey: The Elliptic curve private key.
+    /// This either uses the `SecKeyAlgorithm`: `eciesEncryptionStandardVariableIVX963SHA256AESGCM`,
+    /// or the equivalent OpenSSL implementation.
+    /// - Parameter ecPrivateKey: The elliptic curve private key.
     /// - Returns: The encrypted Data.
     /// - Throws: An ECError is the plaintext fails to be encrypted.
     public func encrypt(with key: ECPublicKey) throws -> Data {
@@ -60,8 +62,9 @@ extension String: ECEncryptable {
 extension Data: ECEncryptable {
     
     /// Encrypt the data using the `ECPublicKey`, then base64Encode the data to produce the encrypted String.
-    /// The encryption algorithm used is determined based on the key's elliptic curve.
-    /// - Parameter ecPrivateKey: The Elliptic curve private key.
+    /// This either uses the `SecKeyAlgorithm`: `eciesEncryptionStandardVariableIVX963SHA256AESGCM`,
+    /// or the equivalent OpenSSL implementation.
+    /// - Parameter ecPrivateKey: The elliptic curve private key.
     /// - Returns: The encrypted Data.
     /// - Throws: An ECError is the plaintext fails to be encrypted.
     public func encryptToString(with key: ECPublicKey) throws -> String {
@@ -70,11 +73,11 @@ extension Data: ECEncryptable {
     }
     
     /// Encrypt the data using the `ECPublicKey`.
-    /// The encryption algorithm used is determined based on the key's elliptic curve.
-    /// - Parameter ecPrivateKey: The Elliptic curve private key.
+    /// This either uses the `SecKeyAlgorithm`: `eciesEncryptionStandardVariableIVX963SHA256AESGCM`,
+    /// or the equivalent OpenSSL implementation.
+    /// - Parameter ecPrivateKey: The elliptic curve private key.
     /// - Returns: The encrypted Data.
     /// - Throws: An ECError is the plaintext fails to be encrypted.
-    @available(OSX 10.13, *)
     public func encrypt(with key: ECPublicKey) throws -> Data {
         #if os(Linux)
         // Compute symmetric key

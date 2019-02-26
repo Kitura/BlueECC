@@ -16,7 +16,7 @@
 
 import Foundation
 
-/// A struct representing the different errors that can be thrown by CryptorECC.
+/// A struct representing the different errors that can be thrown by BlueECC.
 public struct ECError: Error, Equatable {
     
     /// A human readable description of the error.
@@ -32,7 +32,7 @@ public struct ECError: Error, Equatable {
     public static let invalidPEMString = ECError(localizedDescription: "Input was not a valid PEM String", internalError: .invalidPEMString)
     
     /// Error thrown when the PEM header is not recognized.
-    public static let unknownPEMHeader = ECError(localizedDescription: "Input was not a valid PEM String", internalError: .unknownPEMHeader)
+    public static let unknownPEMHeader = ECError(localizedDescription: "Input PEM header was not recognized", internalError: .unknownPEMHeader)
 
     /// Error thrown when a String fails to be Base64 encoded.
     public static let failedBase64Encoding = ECError(localizedDescription: "Failed to base64 encode the String", internalError: .failedBase64Encoding)
@@ -53,7 +53,7 @@ public struct ECError: Error, Equatable {
     public static let failedSigningAlgorithm = ECError(localizedDescription: "Signing algorithm failed to create the signature", internalError: .failedSigningAlgorithm)
     
     /// Error thrown when the provided R and S Data was not a valid length.
-    /// They must be the same length and either 32, 48 or 66 bytes (Depending on the curve used).
+    /// They must be the same length and either 32, 48 or 66 bytes (depending on the curve used).
     public static let invalidRSLength = ECError(localizedDescription: "The provided R and S values were not a valid length", internalError: .invalidRSLength)
     
     /// Error thrown when the encryption algorithm could not encrypt the plaintext.
@@ -65,7 +65,7 @@ public struct ECError: Error, Equatable {
     /// Error thrown when the Data could not be decoded into a UTF8 String.
     public static let failedUTF8Decoding = ECError(localizedDescription: "Data could not be decoded as a UTF8 String", internalError: .failedUTF8Decoding)
     
-    /// Function to check if ECSigningErrors are equal. Required for equatable protocol.
+    /// Checks if ECSigningErrors are equal, required for Equatable protocol.
     public static func == (lhs: ECError, rhs: ECError) -> Bool {
         return lhs.internalError == rhs.internalError
     }

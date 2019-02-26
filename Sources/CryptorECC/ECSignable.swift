@@ -28,12 +28,11 @@ protocol ECSignable {
     func sign(with: ECPrivateKey) throws -> ECSignature
 }
 
-/// Extension for signing a `String` by converting it to utf8 Data and signing the bytes.
 @available(OSX 10.13, *)
 extension String: ECSignable {
     /// UTF8 encode the String to Data and sign it using the `ECPrivateKey`.
-    /// The signing algorithm used is determined based on the private key's elliptic curve.
-    /// - Parameter with key: The Elliptic curve private key.
+    /// The Data is signed using ECDSA with either SHA256, SHA384 or SHA512, depending on the key's curve.
+    /// - Parameter with key: The elliptic curve private key.
     /// - Returns: An ECSignature on failure.
     /// - Throws: An ECError if a valid signature is unable to be created.
     public func sign(with key: ECPrivateKey) throws -> ECSignature {
@@ -41,12 +40,11 @@ extension String: ECSignable {
     }
 }
 
-/// Extension for signing `Data` with an `ECPrivateKey` and the algorithm determined by the key's curve.
 @available(OSX 10.13, *)
 extension Data: ECSignable {
     /// Sign the plaintext data using the provided `ECPrivateKey`.
-    /// The signing algorithm used is determined based on the private key's elliptic curve.
-    /// - Parameter with key: The Elliptic curve private key.
+    /// The Data is signed using ECDSA with either SHA256, SHA384 or SHA512, depending on the key's curve.
+    /// - Parameter with key: The elliptic curve private key.
     /// - Returns: An ECSignature on failure.
     /// - Throws: An ECError if a valid signature is unable to be created.
     public func sign(with key: ECPrivateKey) throws -> ECSignature {

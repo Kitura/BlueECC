@@ -21,22 +21,22 @@ import CommonCrypto
 import OpenSSL
 #endif
 
-/// The signature produced by applying Elliptic Curve Digital Signature Algorithm
-/// to some `Plaintext` data. It consist of two binary unsigned ints r and s.
+/// The signature produced by applying an Elliptic Curve Digital Signature Algorithm to some Plaintext data.
+/// It consists of two binary unsigned integers, `r` and `s`.
 @available(OSX 10.13, *)
 public struct ECSignature {
     
     // MARK: Signature Values
     
     /// The r value of the signature.
-    /// Will be 32 bytes of data for SHA256, 48 bytes for SHA384 or 66 bytes for SHA 512.
+    /// The size of the signature data depends on the Secure Hash Algorithm used; it will be 32 bytes of data for SHA256, 48 bytes for SHA384, or 66 bytes for SHA512.
     public let r: Data
     
     /// The s value of the signature.
-    /// Will be 32 bytes of data for SHA256, 48 bytes for SHA384 or 66 bytes for SHA 512.
+    /// The size of the signature data depends on the Secure Hash Algorithm used; it will be 32 bytes of data for SHA256, 48 bytes for SHA384, or 66 bytes for SHA512.
     public let s: Data
     
-    /// The r and a values of the signature encoded into an ASN1 sequence.
+    /// The r and s values of the signature encoded into an ASN1 sequence.
     public let asn1: Data
 
     // MARK: Initializers
@@ -68,6 +68,7 @@ public struct ECSignature {
     // MARK: Verify Signature
     
     /// Verify the signature for a given String using the provided public key.
+    /// The Data is verified using ECDSA with either SHA256, SHA384 or SHA512, depending on the key's curve.
     /// - Parameter plaintext: The String that was originally signed to produce the signature.
     /// - Parameter using ecPublicKey: The ECPublicKey that will be used to verify the plaintext.
     /// - Returns: true if the plaintext is valid for the provided signature. Otherwise it returns false.
@@ -77,6 +78,7 @@ public struct ECSignature {
     }
         
     /// Verify the signature for the given Data using the provided public key.
+    /// The Data is verified using ECDSA with either SHA256, SHA384 or SHA512, depending on the key's curve.
     /// - Parameter plaintext: The Data that was originally signed to produce the signature.
     /// - Parameter using ecPublicKey: The ECPublicKey that will be used to verify the plaintext.
     /// - Returns: true if the plaintext is valid for the provided signature. Otherwise it returns false.

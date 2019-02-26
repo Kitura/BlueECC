@@ -22,12 +22,12 @@ import OpenSSL
 
 
 /**
- A class representing an Elliptic curve private key.  
+ Represents an elliptic curve private key.  
  Supported curves are:  
  - prime256v1  
  - secp384r1  
  - NID_secp521r1  
- You can generate an Elliptic curve Key using OpenSSL:  
+ You can generate an elliptic curve Key using OpenSSL:  
  https://wiki.openssl.org/index.php/Command_Line_Elliptic_Curve_Operations#Generating_EC_Keys_and_Parameters
  
  ### Usage Example: 
@@ -71,10 +71,10 @@ public class ECPrivateKey {
      """
      let key = try ECPrivateKey(key: privateKeyString)
      ```
+     - Parameter key: The elliptic curve private key as a PEM string.
+     - Returns: An ECPrivateKey.
+     - Throws: An ECError if the PEM string can't be decoded or is not a valid key.
      */
-    /// - Parameter key: The elliptic curve private key as a PEM string.
-    /// - Returns: An ECPrivateKey.
-    /// - Throws: An ECError if the PEM string can't be decoded or is not a valid key.
     public convenience init(key: String) throws {
         // Strip whitespace characters
         let strippedKey = String(key.filter { !" \n\t\r".contains($0) })

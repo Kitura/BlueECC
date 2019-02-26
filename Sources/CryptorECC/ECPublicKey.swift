@@ -21,12 +21,12 @@ import OpenSSL
 #endif
 
 /**
- A class representing an elliptic curve public key.
+ Represents an elliptic curve public key.
  Supported curves are:  
  - prime256v1  
  - secp384r1  
  - NID_secp521r1  
- You can generate an Elliptic curve Key using OpenSSL:  
+ You can generate an elliptic curve Key using OpenSSL:  
  https://wiki.openssl.org/index.php/Command_Line_Elliptic_Curve_Operations#Generating_EC_Keys_and_Parameters  
  
  ### Usage Example: 
@@ -38,8 +38,10 @@ import OpenSSL
  -----END PUBLIC KEY-----
  """
  let publicKey = try ECPublicKey(key: pemKey)
+ 
  let base64Sig = "MEYCIQCvgBLn+tQoBDBR3D2G3485GloYGNxuk6PqR4qjr5GDqAIhAKNvsqvesVBD/MLub/KAyzLLNGtUZyQDxYZj/4vmHwWF"
  let signature = try ECSignature(asn1: Data(base64Encoded: base64Sig)) 
+ 
  let verified = signature.verify(plaintext: "Hello world", using: publicKey)
  ```
  */
@@ -48,9 +50,7 @@ public class ECPublicKey {
     #if os(Linux)
     typealias NativeKey = OpaquePointer?
     let pubKeyBytes: Data
-    deinit {
-        EC_KEY_free(self.nativeKey)
-    }
+    deinit { EC_KEY_free(self.nativeKey) }
     #else
     typealias NativeKey = SecKey
     #endif
@@ -69,10 +69,10 @@ public class ECPublicKey {
      """
      let pemKey = try ECPublicKey(key: publicKeyString)
      ```
+     - Parameter key: The elliptic curve public key as a PEM string.
+     - Returns: An ECPublicKey.
+     - Throws: An ECError if the PEM string can't be decoded or is not a valid key.
      */
-    /// - Parameter key: The elliptic curve public key as a PEM string.
-    /// - Returns: An ECPublicKey.
-    /// - Throws: An ECError if the PEM string can't be decoded or is not a valid key.
     public convenience init(key: String) throws {
         let strippedKey = String(key.filter { !" \n\t\r".contains($0) })
         var pemComponents = strippedKey.components(separatedBy: "-----")
