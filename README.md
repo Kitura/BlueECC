@@ -177,6 +177,7 @@ The following describes the encryption process:
 
 This is equivalent to: `kSecKeyAlgorithmECIESEncryptionStandardVariableIVX963SHA256AESGCM` when using apple security.  
 
+## API Documentation
 
 For more information visit our [API reference](https://ibm-swift.github.io/BlueECC/index.html).
 
