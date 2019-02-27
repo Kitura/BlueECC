@@ -7,7 +7,7 @@ Pod::Spec.new do |s|
   s.author     = "IBM"
   s.module_name  = 'CryptorECC'
   s.requires_arc = true
-  s.osx.deployment_target = "10.12"
+  s.osx.deployment_target = "10.13"
   s.ios.deployment_target = "10.3"
   s.tvos.deployment_target = "10.3"
   s.watchos.deployment_target = "3.3"
