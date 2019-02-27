@@ -47,62 +47,63 @@ extension Data: ECSignable {
     /// - Parameter with key: The elliptic curve private key.
     /// - Returns: An ECSignature on failure.
     /// - Throws: An ECError if a valid signature is unable to be created.
+    #if os(Linux)
     public func sign(with key: ECPrivateKey) throws -> ECSignature {
-        #if os(Linux)
-            let md_ctx = EVP_MD_CTX_new_wrapper()
-            let evp_key = EVP_PKEY_new()
-            guard EVP_PKEY_set1_EC_KEY(evp_key, .make(optional: key.nativeKey)) == 1 else {
-                throw ECError.failedNativeKeyCreation
-            }
-            var pkey_ctx = EVP_PKEY_CTX_new(evp_key, nil)
-            defer {
-                EVP_PKEY_free(evp_key)
-                EVP_MD_CTX_free_wrapper(md_ctx)
-            }
-        
-            guard EVP_DigestSignInit(md_ctx, &pkey_ctx, .make(optional: key.algorithm.signingAlgorithm), nil, evp_key) == 1 else {
-                throw ECError.failedEvpInit
-            }
-        
-            guard self.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in
-                return EVP_DigestUpdate(md_ctx, message, self.count)
-            }) == 1 else {
-                throw ECError.failedSigningAlgorithm
-            }
-        
-            var sig_len: Int = 0
-            EVP_DigestSignFinal(md_ctx, nil, &sig_len)
-            let sig = UnsafeMutablePointer<UInt8>.allocate(capacity: sig_len)
-            defer {
-                #if swift(>=4.1)
-                sig.deallocate()
-                #else
-                sig.deallocate(capacity: sig_len)
-                #endif
-            }
-            guard EVP_DigestSignFinal(md_ctx, sig, &sig_len) == 1 else {
-                throw ECError.failedSigningAlgorithm
-            }
-            return try ECSignature(asn1: Data(bytes: sig, count: sig_len))
-        #else
-            // MacOS, iOS ect.
-            let hash = key.algorithm.digest(data: self)
-        
-            // Memory storage for error from SecKeyCreateSignature
-            var error: Unmanaged<CFError>? = nil
-            // cfSignature is CFData that is ANS1 encoded as a sequence of two UInts (r and s)
-            guard let cfSignature = SecKeyCreateSignature(key.nativeKey,
-                                                          key.algorithm.signingAlgorithm,
-                                                          hash as CFData,
-                                                          &error)
-            else {
-                if let thrownError = error?.takeRetainedValue() {
-                    throw thrownError
-                } else {
-                    throw ECError.failedSigningAlgorithm
-                }
-            }
-            return try ECSignature(asn1: cfSignature as Data)
-        #endif
+        let md_ctx = EVP_MD_CTX_new_wrapper()
+        let evp_key = EVP_PKEY_new()
+        defer {
+            EVP_PKEY_free(evp_key)
+            EVP_MD_CTX_free_wrapper(md_ctx)
+        }
+        guard EVP_PKEY_set1_EC_KEY(evp_key, .make(optional: key.nativeKey)) == 1 else {
+            throw ECError.failedNativeKeyCreation
+        }
+
+        guard EVP_DigestSignInit(md_ctx, nil, .make(optional: key.algorithm.signingAlgorithm), nil, evp_key) == 1 else {
+            throw ECError.failedEvpInit
+        }
+    
+        guard self.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in
+            return EVP_DigestUpdate(md_ctx, message, self.count)
+        }) == 1 else {
+            throw ECError.failedSigningAlgorithm
+        }
+    
+        var sig_len: Int = 0
+        EVP_DigestSignFinal(md_ctx, nil, &sig_len)
+        let sig = UnsafeMutablePointer<UInt8>.allocate(capacity: sig_len)
+        defer {
+            #if swift(>=4.1)
+            sig.deallocate()
+            #else
+            sig.deallocate(capacity: sig_len)
+            #endif
+        }
+        guard EVP_DigestSignFinal(md_ctx, sig, &sig_len) == 1 else {
+            throw ECError.failedSigningAlgorithm
+        }
+        return try ECSignature(asn1: Data(bytes: sig, count: sig_len))
     }
+    #else
+    public func sign(with key: ECPrivateKey) throws -> ECSignature {
+        let hash = key.algorithm.digest(data: self)
+    
+        // Memory storage for error from SecKeyCreateSignature
+        var error: Unmanaged<CFError>? = nil
+        // cfSignature is CFData that is ANS1 encoded as a sequence of two UInts (r and s)
+        guard let cfSignature = SecKeyCreateSignature(key.nativeKey,
+                                                      key.algorithm.signingAlgorithm,
+                                                      hash as CFData,
+                                                      &error)
+        else {
+            if let thrownError = error?.takeRetainedValue() {
+                throw thrownError
+            } else {
+                throw ECError.failedSigningAlgorithm
+            }
+        }
+        return try ECSignature(asn1: cfSignature as Data)
+    }
+    #endif
+
 }

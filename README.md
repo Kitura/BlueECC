@@ -46,7 +46,7 @@ Add `CryptorECC` to your target's dependencies:
 import CryptorECC
 ```
 
-## API Documentation
+## Usage guide
 
 #### Elliptic curve private key
 
@@ -54,7 +54,7 @@ Generate your elliptic curve private key using a third party provider:
 
 You can generate a `p-256` private key as a `.p8` file for Apple services from [https://developer.apple.com/account/ios/authkey](https://developer.apple.com/account/ios/authkey/). This will produce a key that should be formatted as follows:
 ```swift
-let p8PrivateKey =
+let privateKey =
 """
 -----BEGIN PRIVATE KEY-----
 MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQglf7ztYnsaHX2yiHJ
@@ -82,7 +82,7 @@ $ openssl ecparam -name secp521r1 -genkey -noout -out key.pem
 ```
 These keys will be formatted as follows:
 ```swift
-let pemPrivateKey =
+let privateKey =
 """
 -----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIJX+87WJ7Gh19sohyZnhxZeXYNOcuGv4Q+8MLge4UkaZoAoGCCqGSM49
@@ -94,7 +94,7 @@ KVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
 
 The key can then be used to initialize an `ECPrivateKey` instance:
 ```swift
-let eccPrivateKey = try ECPrivateKey(key: pemPrivateKey)
+let eccPrivateKey = try ECPrivateKey(key: privateKey)
 ```
 
 ####  Elliptic curve public  key
@@ -105,7 +105,7 @@ $ openssl ec -in key.pem -pubout -out public.pem
 ```
 This will produce a public key formatted as follows:
 ```swift
-let pemPublicKey =
+let publicKey =
 """
 -----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEikc5m6C2xtDWeeAeT18WElO37zvF
@@ -115,20 +115,20 @@ Oz8p4kAlhvgIHN23XIClNESgKVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
 ```
 These keys can then be used to initialize an `ECPrivateKey` instance:
 ```swift
-let eccPublicKey = try ECPublicKey(key: pemPublicKey)
+let eccPublicKey = try ECPublicKey(key: publicKey)
 ```
+
+Alternatively, you can extract the public key from your `ECPrivateKey`:
+
+```swift
+let eccPublicKey = try eccPrivateKey.extractPublicKey()
+print(eccPublicKey.pemString)
+```  
 
 #### Signing String or Data
 
-BlueECC extends `String` and `Data` to be `ECSignable`:
+BlueECC extends `String` and `Data` so you can call sign directly on your plaintext using an EC private key. This creates an `ECSignature` containing the r and s signature values:
 
-```swift
-public protocol ECSignable {
-    func sign(with: ECPrivateKey) throws -> ECSignature
-}
-```
-
-This lets you sign your plaintext using an EC private key:
 ```swift
 let message = "hello world"
 let signature = try message.sign(with: eccPrivateKey)
@@ -148,8 +148,8 @@ if verified {
 
 Use the public key to encrypt your plaintext String or Data to encrypted Data or an encrypted Base64Encoded String:
 ```swift
-let encryptedData = "Hello World".encrypt(with: eccPublicKey)
-let encryptedString = "Hello World".encryptToString(with: eccPublicKey)
+let encryptedData = try "Hello World".encrypt(with: eccPublicKey)
+print(encryptedData.base64EncodedString())
 ```
 
 #### Decrypting to plaintext
@@ -157,15 +157,25 @@ let encryptedString = "Hello World".encryptToString(with: eccPublicKey)
 Use the private key to decrypt the encrypted Data or Base64Encoded String to plaintext Data or UTF8 String:
 
 ```swift
-let decryptedData = encryptedData.decrypt(with: eccPrivateKey)
-let decryptedString = encryptedString.decryptToString(with: eccPrivateKey)
+let decryptedData = try encryptedData.decrypt(with: eccPrivateKey)
+print(String(data: decryptedData, encoding: .utf8))
 ```
 
-**Note:**
+#### Encryption interoperability
 
-Cross platform encryption and decryption is currently only supported with `prime256v1` curves using `kSecKeyAlgorithmECIESEncryptionStandardVariableIVX963SHA256AESGCM`.  
+Cross platform encryption and decryption is currently only supported with `prime256v1` curves. The `secp384r1` and `secp521r1` curves do not support Linux encryption with Apple platform decryption and vice versa.
 
-`secp384r1` and `secp521r1` does not support Linux encryption with Apple platform decryption and vice versa. As such the Linux implementation is likely to change in a future release.
+If you would like to interoperate with this repo,
+The following describes the encryption/decryption process:
+- Generate an ephemeral EC key pair
+- Use ECDH to generate a symmetric key
+- Use SHA256 ANSI x9.63 Key Derivation Function with the ephemeral public key to generate a 32 byte key
+- Use the first 16 bytes as an AES-GCM key
+- Use the second 16 bytes as the initialization vector (IV)
+- Use aes_128_gcm to encrypt the plaintext
+- Send the
+
+`kSecKeyAlgorithmECIESEncryptionStandardVariableIVX963SHA256AESGCM`.  
 
 
 For more information visit our [API reference](https://ibm-swift.github.io/BlueECC/index.html).

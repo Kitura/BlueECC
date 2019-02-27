@@ -47,14 +47,15 @@ import OpenSSL
 public class ECPrivateKey {
     #if os(Linux)
         typealias NativeKey = OpaquePointer?
-        deinit { EC_KEY_free(self.nativeKey) }
-        let pubKeyBytes: Data
+        deinit { EC_KEY_free(.make(optional: self.nativeKey)) }
     #else
         typealias NativeKey = SecKey
     #endif
 
     let nativeKey: NativeKey
     let algorithm: ECAlgorithm
+    let pubKeyBytes: Data
+
 
     /**
      Initialize an ECPrivateKey from a PEM String.
@@ -144,9 +145,7 @@ public class ECPrivateKey {
         self.nativeKey =  try ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData,
                                                             publicKeyData: publicKeyData,
                                                             algorithm: algorithm)
-        #if os(Linux) 
         self.pubKeyBytes = publicKeyData
-        #endif
     }
 
     /// Initialize an ECPrivateKey from a SEC1 `.der` file data.  
@@ -174,23 +173,61 @@ public class ECPrivateKey {
         self.nativeKey =  try ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData,
                                                             publicKeyData: publicKeyData,
                                                             algorithm: algorithm)
-        #if os(Linux) 
         self.pubKeyBytes = publicKeyData.drop(while: { $0 == 0x00})
-        #endif
+    }
+    
+    /// Initialize the `ECPublicKey`for this private key by extracting the public key bytes.
+    /// - Returns: An ECPublicKey.
+    /// - Throws: An ECError if the public key fails to be initialized from this private key.
+    public func extractPublicKey() throws -> ECPublicKey {
+        let keyHeader: Data
+        // Add the ASN1 header for the public key. The bytes have the following structure:
+        // SEQUENCE (2 elem)
+        //     SEQUENCE (2 elem)
+        //         OBJECT IDENTIFIER
+        //         OBJECT IDENTIFIER
+        //     BIT STRING (This is the `pubKeyBytes` added afterwards)
+        if self.algorithm.id == .p256 {
+            keyHeader = Data(bytes: [0x30, 0x59,
+                                     0x30, 0x13,
+                                     0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
+                                     0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x03, 0x42])
+        } else if self.algorithm.id == .p384 {
+            keyHeader = Data(bytes: [0x30, 0x76,
+                                     0x30, 0x10,
+                                     0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
+                                     0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x22, 0x03, 0x62])
+        } else if self.algorithm.id == .p521 {
+            keyHeader = Data(bytes: [0x30, 0x81, 0x9B,
+                                     0x30, 0x10,
+                                     0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
+                                     0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x23, 0x03, 0x81, 0x86])
+        } else {
+            throw ECError.unsupportedCurve
+        }
+        // If we stripped the leading zero earlier, add it back here
+        var pubBytes = self.pubKeyBytes
+        if pubBytes.startIndex != 0 {
+            pubBytes = Data(count: 1) + self.pubKeyBytes
+        }
+        return try ECPublicKey(der: keyHeader + pubBytes)
     }
 
 
     private static func bytesToNativeKey(privateKeyData: Data, publicKeyData: Data, algorithm: ECAlgorithm) throws -> NativeKey {
         #if os(Linux)
             let bigNum = BN_new()
+            defer {
+                BN_free(bigNum)
+            }
             privateKeyData.withUnsafeBytes({ (privateKeyBytes: UnsafePointer<UInt8>) -> Void in
                 BN_bin2bn(privateKeyBytes, Int32(privateKeyData.count), bigNum)
             })
             let ecKey = EC_KEY_new_by_curve_name(algorithm.curve)
             guard EC_KEY_set_private_key(ecKey, bigNum) == 1 else {
+                EC_KEY_free(ecKey)
                 throw ECError.failedNativeKeyCreation
             }
-            BN_free(bigNum)
             return ecKey
         #else
             let keyData = publicKeyData.drop(while: { $0 == 0x00}) + privateKeyData

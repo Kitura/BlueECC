@@ -76,52 +76,51 @@ public struct ECSignature {
         let plainTextData = Data(plaintext.utf8)
         return verify(plaintext: plainTextData, using: ecPublicKey)
     }
-        
+    
     /// Verify the signature for the given Data using the provided public key.
     /// The Data is verified using ECDSA with either SHA256, SHA384 or SHA512, depending on the key's curve.
     /// - Parameter plaintext: The Data that was originally signed to produce the signature.
     /// - Parameter using ecPublicKey: The ECPublicKey that will be used to verify the plaintext.
     /// - Returns: true if the plaintext is valid for the provided signature. Otherwise it returns false.
+    #if os(Linux)
     public func verify(plaintext: Data, using ecPublicKey: ECPublicKey) -> Bool {
-        
-        #if os(Linux)
-            let md_ctx = EVP_MD_CTX_new_wrapper()
-            let evp_key = EVP_PKEY_new()
-            guard EVP_PKEY_set1_EC_KEY(evp_key, .make(optional: ecPublicKey.nativeKey)) == 1 else {
-                return false
-            }
-            var pkey_ctx = EVP_PKEY_CTX_new(evp_key, nil)
-            defer {
-                EVP_PKEY_free(evp_key)
-                EVP_MD_CTX_free_wrapper(md_ctx)
-            }
-        
-            EVP_DigestVerifyInit(md_ctx, &pkey_ctx, .make(optional: ecPublicKey.algorithm.signingAlgorithm), nil, evp_key)
-            guard plaintext.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in
-                return EVP_DigestUpdate(md_ctx, message, plaintext.count)
-            }) == 1 else {
-                return false
-            }
-        
-            let rc = self.asn1.withUnsafeBytes({ (sig: UnsafePointer<UInt8>) -> Int32 in
-                return EVP_DigestVerifyFinal(md_ctx, sig, self.asn1.count)
-            })
-
-            return rc == 1
-        #else
-            // MacOS, iOS ect.
-            let hash = ecPublicKey.algorithm.digest(data: plaintext)
-
-            // Memory storage for error from SecKeyVerifySignature
-            var error: Unmanaged<CFError>? = nil
-            return SecKeyVerifySignature(ecPublicKey.nativeKey,
-                                     ecPublicKey.algorithm.signingAlgorithm,
-                                     hash as CFData,
-                                     self.asn1 as CFData,
-                                     &error)
-        #endif
-    }
+        let md_ctx = EVP_MD_CTX_new_wrapper()
+        let evp_key = EVP_PKEY_new()
+        defer {
+            EVP_PKEY_free(evp_key)
+            EVP_MD_CTX_free_wrapper(md_ctx)
+        }
+        guard EVP_PKEY_set1_EC_KEY(evp_key, .make(optional: ecPublicKey.nativeKey)) == 1 else {
+            return false
+        }
     
+        EVP_DigestVerifyInit(md_ctx, nil, .make(optional: ecPublicKey.algorithm.signingAlgorithm), nil, evp_key)
+        guard plaintext.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in
+            return EVP_DigestUpdate(md_ctx, message, plaintext.count)
+        }) == 1 else {
+            return false
+        }
+    
+        let rc = self.asn1.withUnsafeBytes({ (sig: UnsafePointer<UInt8>) -> Int32 in
+            return EVP_DigestVerifyFinal(md_ctx, sig, self.asn1.count)
+        })
+
+        return rc == 1
+    }
+    #else
+    public func verify(plaintext: Data, using ecPublicKey: ECPublicKey) -> Bool {
+        let hash = ecPublicKey.algorithm.digest(data: plaintext)
+
+        // Memory storage for error from SecKeyVerifySignature
+        var error: Unmanaged<CFError>? = nil
+        return SecKeyVerifySignature(ecPublicKey.nativeKey,
+                                 ecPublicKey.algorithm.signingAlgorithm,
+                                 hash as CFData,
+                                 self.asn1 as CFData,
+                                 &error)
+    }
+    #endif
+
     // ASN1 encode the r and s values.
     static func rsSigToASN1(r: Data, s: Data) throws -> Data {
         

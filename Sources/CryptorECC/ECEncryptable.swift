@@ -26,25 +26,11 @@ import OpenSSL
 protocol ECEncryptable {
     /// Encrypt the object using ECIES and produce some encrypted `Data`.
     func encrypt(with: ECPublicKey) throws -> Data
-    
-    /// Encrypt the object using ECIES and encode it to a Base64Encoded String.
-    func encryptToString(with: ECPublicKey) throws -> String
 }
 
-/// Extension for signing a `String` by converting it to UTF8 Data and signing the bytes.
+/// Extensions for encrypting or signing a `String` by converting it to UTF8 Data, then using the appropriate algorithm determined by the key's curve with the provided `ECPrivateKey` or `ECPublicKey`.
 @available(OSX 10.13, *)
 extension String: ECEncryptable {
-    
-    /// UTF8 encode the String to Data and encrypt it using the `ECPublicKey`,
-    /// then base64Encode the data to produce the encrypted String.
-    /// This either uses the `SecKeyAlgorithm`: `eciesEncryptionStandardVariableIVX963SHA256AESGCM`,
-    /// or the equivalent OpenSSL implementation.
-    /// - Parameter with key: The elliptic curve public key.
-    /// - Returns: The encrypted Base64Encoded String.
-    /// - Throws: An ECError is the plaintext fails to be encrypted.
-    public func encryptToString(with key: ECPublicKey) throws -> String {
-        return try Data(self.utf8).encryptToString(with: key)
-    }
     
     /// UTF8 encode the String to Data and encrypt it using the `ECPublicKey`.
     /// This either uses the `SecKeyAlgorithm`: `eciesEncryptionStandardVariableIVX963SHA256AESGCM`,
@@ -61,25 +47,14 @@ extension String: ECEncryptable {
 @available(OSX 10.13, *)
 extension Data: ECEncryptable {
     
-    /// Encrypt the data using the `ECPublicKey`, then base64Encode the data to produce the encrypted String.
-    /// This either uses the `SecKeyAlgorithm`: `eciesEncryptionStandardVariableIVX963SHA256AESGCM`,
-    /// or the equivalent OpenSSL implementation.
-    /// - Parameter ecPrivateKey: The elliptic curve private key.
-    /// - Returns: The encrypted Data.
-    /// - Throws: An ECError is the plaintext fails to be encrypted.
-    public func encryptToString(with key: ECPublicKey) throws -> String {
-        let encryptedData = try self.encrypt(with: key)
-        return encryptedData.base64EncodedString()
-    }
-    
     /// Encrypt the data using the `ECPublicKey`.
     /// This either uses the `SecKeyAlgorithm`: `eciesEncryptionStandardVariableIVX963SHA256AESGCM`,
     /// or the equivalent OpenSSL implementation.
     /// - Parameter ecPrivateKey: The elliptic curve private key.
     /// - Returns: The encrypted Data.
     /// - Throws: An ECError is the plaintext fails to be encrypted.
+    #if os(Linux)
     public func encrypt(with key: ECPublicKey) throws -> Data {
-        #if os(Linux)
         // Compute symmetric key
         let ec_key = EC_KEY_new_by_curve_name(key.algorithm.curve)
         EC_KEY_generate_key(ec_key)
@@ -146,7 +121,7 @@ extension Data: ECEncryptable {
         var processedLength: Int32 = 0
         var encLength: Int32 = 0
         guard EVP_EncryptInit_ex(rsaEncryptCtx, EVP_aes_128_gcm(), nil, nil, nil) == 1 else {
-            throw ECError.failedEncryptionAlgorithm
+            throw ECError.failedEvpInit
         }
         // Set the IV length to be 16 to match Apple.
         guard EVP_CIPHER_CTX_ctrl(rsaEncryptCtx, EVP_CTRL_GCM_SET_IVLEN, 16, nil) == 1
@@ -182,8 +157,9 @@ extension Data: ECEncryptable {
         let cipher = Data(bytes: encrypted, count: Int(encLength))
         let tagFinal = Data(bytes: tag, count: 16)
         return ekFinal + cipher + tagFinal
-
-        #else
+    }
+    #else
+    public func encrypt(with key: ECPublicKey) throws -> Data {
             var error: Unmanaged<CFError>? = nil
             guard let eData = SecKeyCreateEncryptedData(key.nativeKey,
                                                         key.algorithm.curve,
@@ -197,7 +173,7 @@ extension Data: ECEncryptable {
             }
             
             return eData as Data
-        #endif
-        
     }
+    #endif
+
 }

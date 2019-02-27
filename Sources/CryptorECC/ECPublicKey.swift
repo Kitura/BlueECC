@@ -50,13 +50,16 @@ public class ECPublicKey {
     #if os(Linux)
     typealias NativeKey = OpaquePointer?
     let pubKeyBytes: Data
-    deinit { EC_KEY_free(self.nativeKey) }
+    deinit { EC_KEY_free(.make(optional: self.nativeKey)) }
     #else
     typealias NativeKey = SecKey
     #endif
     let nativeKey: NativeKey
     let algorithm: ECAlgorithm
-
+    
+    /// The public key represented as a PEM String.
+    public let pemString: String
+    
     /**
      Initialize an ECPublicKey from a `.pem` file format.
      ### Usage Example: ###
@@ -96,6 +99,7 @@ public class ECPublicKey {
     /// - Returns: An ECPublicKey.
     /// - Throws: An ECError if the Data can't be decoded or is not a valid key.
     public init(der: Data) throws {
+        pemString = ECPublicKey.derToPEMString(derData: der)
         let (result, _) = ASN1.toASN1Element(data: der)
         guard case let ASN1.ASN1Element.seq(elements: seq) = result,
             seq.count > 1,
@@ -107,25 +111,29 @@ public class ECPublicKey {
             throw ECError.failedASN1Decoding
         }
         self.algorithm = try ECAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID)
-        
+        let keyData = publicKeyData.drop(while: { $0 == 0x00})
         #if os(Linux)
-            self.pubKeyBytes = publicKeyData.drop(while: { $0 == 0x00})
+            self.pubKeyBytes = keyData
             let bigNum = BN_new()
+            defer {
+                BN_free(bigNum)
+            }
             publicKeyData.withUnsafeBytes({ (pubKeyBytes: UnsafePointer<UInt8>) -> Void in
                 BN_bin2bn(pubKeyBytes, Int32(publicKeyData.count), bigNum)
             })
             let ecKey = EC_KEY_new_by_curve_name(algorithm.curve)
             let ecGroup = EC_KEY_get0_group(ecKey)
             let ecPoint = EC_POINT_new(ecGroup)
+            defer {
+                EC_POINT_free(ecPoint)
+            }
             EC_POINT_bn2point(ecGroup, bigNum, ecPoint, nil)
             guard EC_KEY_set_public_key(ecKey, ecPoint) == 1 else {
+                EC_KEY_free(ecKey)
                 throw ECError.failedNativeKeyCreation
             }
-            BN_free(bigNum)
-            EC_POINT_free(ecPoint)
             self.nativeKey = ecKey
         #else
-            let keyData = publicKeyData.drop(while: { $0 == 0x00})
             var error: Unmanaged<CFError>? = nil
             guard let secKey = SecKeyCreateWithData(keyData as CFData,
                                                     [kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom,
@@ -141,5 +149,52 @@ public class ECPublicKey {
             }
             self.nativeKey = secKey
         #endif
+    }
+    
+    private static func derToPEMString(derData: Data) -> String {
+        // First convert the DER data to a base64 string...
+        let base64String = derData.base64EncodedString()
+        // Split the string into strings of length 65...
+        let lines = base64String.split(to: 64)
+        // Join those lines with a new line...
+        let joinedLines = lines.joined(separator: "\n")
+        return "-----BEGIN PUBLIC KEY-----\n" + joinedLines + "\n-----END PUBLIC KEY-----"
+    }
+}
+
+private extension String {
+    
+    ///
+    /// Split a string to a specified length.
+    ///
+    ///    - Parameters:
+    ///        - length:                Length of each split string.
+    ///
+    ///    - Returns:                    `[String]` containing each string.
+    ///
+    func split(to length: Int) -> [String] {
+        
+        var result = [String]()
+        var collectedCharacters = [Character]()
+        collectedCharacters.reserveCapacity(length)
+        var count = 0
+        
+        for character in self {
+            collectedCharacters.append(character)
+            count += 1
+            if count == length {
+                // Reached the desired length
+                count = 0
+                result.append(String(collectedCharacters))
+                collectedCharacters.removeAll(keepingCapacity: true)
+            }
+        }
+        
+        // Append the remainder
+        if !collectedCharacters.isEmpty {
+            result.append(String(collectedCharacters))
+        }
+        
+        return result
     }
 }
