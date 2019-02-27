@@ -82,8 +82,8 @@ public struct ECSignature {
     /// - Parameter plaintext: The Data that was originally signed to produce the signature.
     /// - Parameter using ecPublicKey: The ECPublicKey that will be used to verify the plaintext.
     /// - Returns: true if the plaintext is valid for the provided signature. Otherwise it returns false.
-    #if os(Linux)
     public func verify(plaintext: Data, using ecPublicKey: ECPublicKey) -> Bool {
+    #if os(Linux)
         let md_ctx = EVP_MD_CTX_new_wrapper()
         let evp_key = EVP_PKEY_new()
         defer {
@@ -106,9 +106,7 @@ public struct ECSignature {
         })
 
         return rc == 1
-    }
     #else
-    public func verify(plaintext: Data, using ecPublicKey: ECPublicKey) -> Bool {
         let hash = ecPublicKey.algorithm.digest(data: plaintext)
 
         // Memory storage for error from SecKeyVerifySignature
@@ -118,9 +116,8 @@ public struct ECSignature {
                                  hash as CFData,
                                  self.asn1 as CFData,
                                  &error)
-    }
     #endif
-
+    }
     // ASN1 encode the r and s values.
     static func rsSigToASN1(r: Data, s: Data) throws -> Data {
         

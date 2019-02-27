@@ -166,16 +166,16 @@ print(String(data: decryptedData, encoding: .utf8))
 Cross platform encryption and decryption is currently only supported with `prime256v1` curves. The `secp384r1` and `secp521r1` curves do not support Linux encryption with Apple platform decryption and vice versa.
 
 If you would like to interoperate with this repo,
-The following describes the encryption/decryption process:
+The following describes the encryption process:
 - Generate an ephemeral EC key pair
-- Use ECDH to generate a symmetric key
+- Use ECDH of your EC pair to generate a symmetric key
 - Use SHA256 ANSI x9.63 Key Derivation Function with the ephemeral public key to generate a 32 byte key
 - Use the first 16 bytes as an AES-GCM key
 - Use the second 16 bytes as the initialization vector (IV)
-- Use aes_128_gcm to encrypt the plaintext
-- Send the
+- Use aes_128_gcm to encrypt the plaintext and generate a 16 byte GCM tag
+- Send the ephemeral public key, encrypted data and GCM tag
 
-`kSecKeyAlgorithmECIESEncryptionStandardVariableIVX963SHA256AESGCM`.  
+This is equivalent to: `kSecKeyAlgorithmECIESEncryptionStandardVariableIVX963SHA256AESGCM` when using apple security.  
 
 
 For more information visit our [API reference](https://ibm-swift.github.io/BlueECC/index.html).

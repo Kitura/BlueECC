@@ -47,8 +47,8 @@ extension Data: ECSignable {
     /// - Parameter with key: The elliptic curve private key.
     /// - Returns: An ECSignature on failure.
     /// - Throws: An ECError if a valid signature is unable to be created.
-    #if os(Linux)
     public func sign(with key: ECPrivateKey) throws -> ECSignature {
+    #if os(Linux)
         let md_ctx = EVP_MD_CTX_new_wrapper()
         let evp_key = EVP_PKEY_new()
         defer {
@@ -83,9 +83,7 @@ extension Data: ECSignable {
             throw ECError.failedSigningAlgorithm
         }
         return try ECSignature(asn1: Data(bytes: sig, count: sig_len))
-    }
     #else
-    public func sign(with key: ECPrivateKey) throws -> ECSignature {
         let hash = key.algorithm.digest(data: self)
     
         // Memory storage for error from SecKeyCreateSignature
@@ -103,7 +101,6 @@ extension Data: ECSignable {
             }
         }
         return try ECSignature(asn1: cfSignature as Data)
-    }
     #endif
-
+    }
 }

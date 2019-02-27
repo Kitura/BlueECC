@@ -53,8 +53,8 @@ extension Data: ECEncryptable {
     /// - Parameter ecPrivateKey: The elliptic curve private key.
     /// - Returns: The encrypted Data.
     /// - Throws: An ECError is the plaintext fails to be encrypted.
-    #if os(Linux)
     public func encrypt(with key: ECPublicKey) throws -> Data {
+    #if os(Linux)
         // Compute symmetric key
         let ec_key = EC_KEY_new_by_curve_name(key.algorithm.curve)
         EC_KEY_generate_key(ec_key)
@@ -157,23 +157,20 @@ extension Data: ECEncryptable {
         let cipher = Data(bytes: encrypted, count: Int(encLength))
         let tagFinal = Data(bytes: tag, count: 16)
         return ekFinal + cipher + tagFinal
-    }
     #else
-    public func encrypt(with key: ECPublicKey) throws -> Data {
-            var error: Unmanaged<CFError>? = nil
-            guard let eData = SecKeyCreateEncryptedData(key.nativeKey,
-                                                        key.algorithm.curve,
-                                                        self as CFData,
-                                                        &error)
-            else {
-                guard let error = error?.takeRetainedValue() else {
-                    throw ECError.failedEncryptionAlgorithm
-                }
-                throw error
+        var error: Unmanaged<CFError>? = nil
+        guard let eData = SecKeyCreateEncryptedData(key.nativeKey,
+                                                    key.algorithm.curve,
+                                                    self as CFData,
+                                                    &error)
+        else {
+            guard let error = error?.takeRetainedValue() else {
+                throw ECError.failedEncryptionAlgorithm
             }
-            
-            return eData as Data
-    }
+            throw error
+        }
+        
+        return eData as Data
     #endif
-
+    }
 }

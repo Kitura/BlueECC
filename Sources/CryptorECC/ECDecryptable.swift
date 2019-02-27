@@ -30,8 +30,8 @@ extension Data {
     /// - Parameter ecPrivateKey: The elliptic curve private key.
     /// - Returns: The plaintext Data.
     /// - Throws: An ECError if the Encrypted data fails to be decrypted.
-    #if os(Linux)
     public func decrypt(with key: ECPrivateKey) throws -> Data {
+    #if os(Linux)
         // Initialize the decryption context.
         let rsaDecryptCtx = EVP_CIPHER_CTX_new()
         EVP_CIPHER_CTX_init_wrapper(rsaDecryptCtx)
@@ -127,22 +127,19 @@ extension Data {
         decMsgLen += processedLen
         // return the decrypted plaintext.
         return Data(bytes: decrypted, count: Int(decMsgLen))
-    }
     #else
-    public func decrypt(with key: ECPrivateKey) throws -> Data {
-            var error: Unmanaged<CFError>? = nil
-            guard let eData = SecKeyCreateDecryptedData(key.nativeKey,
-                                                        key.algorithm.curve,
-                                                        self as CFData,
-                                                        &error)
-            else {
-                guard let error = error?.takeRetainedValue() else {
-                    throw ECError.failedEncryptionAlgorithm
-                }
-                throw error
+        var error: Unmanaged<CFError>? = nil
+        guard let eData = SecKeyCreateDecryptedData(key.nativeKey,
+                                                    key.algorithm.curve,
+                                                    self as CFData,
+                                                    &error)
+        else {
+            guard let error = error?.takeRetainedValue() else {
+                throw ECError.failedEncryptionAlgorithm
             }
-            
-            return eData as Data
-    }
+            throw error
+        }
+        return eData as Data
     #endif
+    }
 }
