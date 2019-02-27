@@ -1,7 +1,7 @@
 import XCTest
 import CryptorECC
 
-@available(OSX 10.12, *)
+@available(OSX 10.13, *)
 final class CryptorECCTests: XCTestCase {
     static var allTests = [
             ("test_simpleCycle", test_simpleCycle),
@@ -14,7 +14,15 @@ final class CryptorECCTests: XCTestCase {
             ("test_Pem384ECDSACycle", test_Pem384ECDSACycle),
             ("test_P8ES384Cycle", test_P8ES384Cycle),
             ("test_Pem512ECDSAVerify", test_Pem512ECDSAVerify),
+            ("test_P8ES512Cycle", test_P8ES512Cycle),
             ("test_Pem512ECDSACycle", test_Pem512ECDSACycle),
+            ("test_IncorrectPublicKey", test_IncorrectPublicKey),
+            ("test_IncorrectPlaintext", test_IncorrectPlaintext),
+            ("test_EncryptionCycle", test_EncryptionCycle),
+            ("test_MacEncrypted", test_MacEncrypted),
+            ("test_LinuxEncrypted", test_LinuxEncrypted),
+            ("test_EncryptionCycle384", test_EncryptionCycle384),
+            ("test_EncryptionCycle512", test_EncryptionCycle512),
         ]
     
     let ecPemPrivateKey = """
@@ -108,114 +116,101 @@ Mw==
 -----END PRIVATE KEY-----
 """
     
-    func test_simpleCycle() {        
-        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPemPrivateKey) else {
-            return XCTFail()
+    func test_simpleCycle() { 
+        do {
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecPemPrivateKey)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPemPublicKey)
+            let signature = try "Hello world".sign(with: ecdsaPrivateKey)
+            let verified = signature.verify(plaintext: "Hello world", using: ecdsaPublicKey)
+            XCTAssertTrue(verified)
+        } catch {
+            return XCTFail("test_simpleCycle failed: \(error)")
         }
-        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPemPublicKey) else {
-            return XCTFail()
-        }
-        let signature = try? "Hello world".sign(with: ecdsaPrivateKey)
-        let verified = signature?.verify(plaintext: "Hello world", using: ecdsaPublicKey)
-        XCTAssert(verified == true)
     }
     
     func test_PemECDSACycle() {
-        guard let exampleJWTHeader = try? JSONSerialization.data(withJSONObject: ["alg": "ES256", "typ": "JWT"]),
-            let exampleJWTClaims = try? JSONSerialization.data(withJSONObject: ["sub": "1234567890", "admin": true, "iat": 1516239022])
-            else {
-                return XCTFail("Failed to serialize JWT to JSON")
+        do {
+            let exampleJWTHeader = try JSONSerialization.data(withJSONObject: ["alg": "ES256", "typ": "JWT"])
+            let exampleJWTClaims = try JSONSerialization.data(withJSONObject: ["sub": "1234567890", "admin": true, "iat": 1516239022])
+            let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecPemPrivateKey)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPemPublicKey)
+            let signature = try unsignedJWT.sign(with: ecdsaPrivateKey)
+            let verified = signature.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
+            XCTAssertTrue(verified)
+        } catch {
+            return XCTFail("test_PemECDSACycle failed: \(error)")
         }
-        
-        let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
-        
-        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPemPrivateKey) else {
-            return XCTFail()
-        }
-        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPemPublicKey) else {
-            return XCTFail()
-        }
-        let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
-        let verified = signature?.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
-        XCTAssert(verified == true)
     }
     
     func test_P8ECDSACycle() {
-        guard let exampleJWTHeader = try? JSONSerialization.data(withJSONObject: ["alg": "ES256", "typ": "JWT"]),
-            let exampleJWTClaims = try? JSONSerialization.data(withJSONObject: ["sub": "1234567890", "admin": true, "iat": 1516239022])
-            else {
-                return XCTFail("Failed to serialize JWT to JSON")
+        do {
+            let exampleJWTHeader = try JSONSerialization.data(withJSONObject: ["alg": "ES256", "typ": "JWT"])
+            let exampleJWTClaims = try JSONSerialization.data(withJSONObject: ["sub": "1234567890", "admin": true, "iat": 1516239022])
+            let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecP8PrivateKey)
+            let ecdsaPublicKey = try ECPublicKey(key: ecP8PublicKey)
+            let signature = try unsignedJWT.sign(with: ecdsaPrivateKey)
+            let verified = signature.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
+            XCTAssertTrue(verified)
+        } catch {
+            return XCTFail("test_P8ECDSACycle failed: \(error)")
         }
-        
-        let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
-        
-        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecP8PrivateKey) else {
-            return XCTFail()
-        }
-        guard let ecdsaPublicKey = try? ECPublicKey(key: ecP8PublicKey) else {
-            return XCTFail()
-        }
-        let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
-        let verified = signature?.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
-        XCTAssert(verified == true)
     }
     
     func test_AppleP8ECDSACycle() {
-        guard let exampleJWTHeader = try? JSONSerialization.data(withJSONObject: ["alg": "ES256", "typ": "JWT"]),
-            let exampleJWTClaims = try? JSONSerialization.data(withJSONObject: ["sub": "1234567890", "admin": true, "iat": 1516239022])
-            else {
-                return XCTFail("Failed to serialize JWT to JSON")
-        }
-        
+        do {
+        let exampleJWTHeader = try JSONSerialization.data(withJSONObject: ["alg": "ES256", "typ": "JWT"])
+        let exampleJWTClaims = try JSONSerialization.data(withJSONObject: ["sub": "1234567890", "admin": true, "iat": 1516239022])
         let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
-        
-        guard let ecdsaPrivateKey = try? ECPrivateKey(key: appleECP8PrivateKey) else {
-            return XCTFail()
+        let ecdsaPrivateKey = try ECPrivateKey(key: appleECP8PrivateKey)
+        let ecdsaPublicKey = try ECPublicKey(key: appleECP8PublicKey)
+        let signature = try unsignedJWT.sign(with: ecdsaPrivateKey)
+        let verified = signature.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
+        XCTAssertTrue(verified)
+        } catch {
+            return XCTFail("test_AppleP8ECDSACycle failed: \(error)")
         }
-        guard let ecdsaPublicKey = try? ECPublicKey(key: appleECP8PublicKey) else {
-            return XCTFail()
-        }
-        let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
-        let verified = signature?.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
-        XCTAssert(verified == true)
     }
     
     func test_PemECDSAVerify() {
-        // generated from jwt.io
-        guard let JWTDigest =  "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0".data(using: .utf8),
-            let JWTSignature = Data(base64urlEncoded: "jGeUQXuf4WLuqhCHOdrIr2alE4JQyKQwkj-GbZIXQIpwrKLymEd41bka2PSIqRAA6H1A2kLuXhzwFw02qQdMhw") else {
-                return XCTFail("Failed to create JWT digest")
+        do {
+            // generated from jwt.io
+            guard let JWTDigest =  "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0".data(using: .utf8),
+                let JWTSignature = Data(base64urlEncoded: "jGeUQXuf4WLuqhCHOdrIr2alE4JQyKQwkj-GbZIXQIpwrKLymEd41bka2PSIqRAA6H1A2kLuXhzwFw02qQdMhw") else {
+                    return XCTFail("Failed to create JWT digest")
+            }
+            let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
+            let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPemPublicKey)
+            let sig = try ECSignature(r: r, s: s)
+            let verified = sig.verify(plaintext: JWTDigest, using: ecdsaPublicKey)
+            XCTAssertTrue(verified)
+        } catch {
+            return XCTFail("test_PemECDSAVerify failed: \(error)")
         }
-        let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
-        let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
-        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPemPublicKey),
-            let sig = try? ECSignature(r: r, s: s)
-        else {
-            return XCTFail()
-        }
-        let verified = sig.verify(plaintext: JWTDigest, using: ecdsaPublicKey)
-        XCTAssert(verified == true)
     }
     
     func test_P8ECDSAVerify() {
-        // generated from jwt.io
-        guard let JWTDigest =  "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0".data(using: .utf8),
-            let JWTSignature = Data(base64urlEncoded: "faLW3RiQtUG6U71gCrGEBY7AWNfYphygJQKoW8apoB4beX_-GFhkBwkcZATXKIL8UoFLHqmdKK97vO2Nv3OWDA") else {
-                return XCTFail("Failed to create JWT digest")
+        do {
+            // generated from jwt.io
+            guard let JWTDigest =  "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0".data(using: .utf8),
+                let JWTSignature = Data(base64urlEncoded: "faLW3RiQtUG6U71gCrGEBY7AWNfYphygJQKoW8apoB4beX_-GFhkBwkcZATXKIL8UoFLHqmdKK97vO2Nv3OWDA") else {
+                    return XCTFail("Failed to create JWT digest")
+            }
+            let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
+            let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPemPublicKey)
+            let sig = try ECSignature(r: r, s: s)
+            let verified = sig.verify(plaintext: JWTDigest, using: ecdsaPublicKey)
+            XCTAssertTrue(verified)
+        } catch {
+            return XCTFail("test_P8ECDSAVerify failed: \(error)")
         }
-        let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
-        let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
-        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPemPublicKey),
-            let sig = try? ECSignature(r: r, s: s)
-        else {
-            return XCTFail()
-        }
-        
-        let verified = sig.verify(plaintext: JWTDigest, using: ecdsaPublicKey)
-        XCTAssert(verified == true)
     }
     
     func test_Pem384ECDSACycle() {
+        do {
         guard let exampleJWTHeader = try? JSONSerialization.data(withJSONObject: ["alg": "ES384", "typ": "JWT", "kid": "iTqXXI0zbAnJCKDaobfhkM1f-6rMSpTfyZMRp_2tKI8"]),
             let exampleJWTClaims = try? JSONSerialization.data(withJSONObject: ["sub": "1234567890", "name": "John Doe", "admin": true, "iat": 1516239022])
             else {
@@ -224,151 +219,236 @@ Mw==
         
         let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
         
-        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPem384PrivateKey) else {
-            return XCTFail()
+        let ecdsaPrivateKey = try ECPrivateKey(key: ecPem384PrivateKey)
+        let ecdsaPublicKey = try ECPublicKey(key: ecPem384PublicKey)
+        let signature = try unsignedJWT.sign(with: ecdsaPrivateKey)
+        let verified = signature.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
+        XCTAssertTrue(verified)
+        } catch {
+            return XCTFail("test_Pem384ECDSACycle failed: \(error)")
         }
-        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem384PublicKey) else {
-            return XCTFail()
-        }
-        let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
-        let verified = signature?.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
-        XCTAssert(verified == true)
     }
     
     func test_P8ES384Cycle() {
-        guard let exampleJWTHeader = try? JSONSerialization.data(withJSONObject: ["alg": "ES384", "typ": "JWT", "kid": "iTqXXI0zbAnJCKDaobfhkM1f-6rMSpTfyZMRp_2tKI8"]),
-            let exampleJWTClaims = try? JSONSerialization.data(withJSONObject: ["sub": "1234567890", "name": "John Doe", "admin": true, "iat": 1516239022])
-            else {
-                return XCTFail("Failed to serialize JWT to JSON")
+        do {
+            guard let exampleJWTHeader = try? JSONSerialization.data(withJSONObject: ["alg": "ES384", "typ": "JWT", "kid": "iTqXXI0zbAnJCKDaobfhkM1f-6rMSpTfyZMRp_2tKI8"]),
+                let exampleJWTClaims = try? JSONSerialization.data(withJSONObject: ["sub": "1234567890", "name": "John Doe", "admin": true, "iat": 1516239022])
+                else {
+                    return XCTFail("Failed to serialize JWT to JSON")
+            }
+            
+            let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecP8ES384PrivateKey)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPem384PublicKey)
+            let signature = try unsignedJWT.sign(with: ecdsaPrivateKey)
+            let verified = signature.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
+            XCTAssertTrue(verified)
+        } catch {
+            return XCTFail("test_P8ES384Cycle failed: \(error)")
         }
-        
-        let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
-        
-        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecP8ES384PrivateKey) else {
-            return XCTFail()
-        }
-        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem384PublicKey) else {
-            return XCTFail()
-        }
-        let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
-        let verified = signature?.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
-        XCTAssert(verified == true)
     }
     
     func test_Pem384ECDSAVerify() {
-        // generated from jwt.io
-        guard let JWTDigest =  "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzM4NCIsImtpZCI6ImlUcVhYSTB6YkFuSkNLRGFvYmZoa00xZi02ck1TcFRmeVpNUnBfMnRLSTgifQ.eyJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyLCJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0".data(using: .utf8),
-            let JWTSignature = Data(base64urlEncoded: "KOJv0MUveeDr5HQwbA4lX31FDJAP-46MIr5rdd1T_4ppSGIfCrN81uyqbs7pbnYta_-_f6EZe6O60BwiotmlE4qLBW_Db2XGOvU0R5z2RMH8rtaNxkKnorsh-ZHn40Xu") else {
-                return XCTFail("Failed to create JWT digest")
+        do {
+            // generated from jwt.io
+            guard let JWTDigest =  "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzM4NCIsImtpZCI6ImlUcVhYSTB6YkFuSkNLRGFvYmZoa00xZi02ck1TcFRmeVpNUnBfMnRLSTgifQ.eyJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyLCJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0".data(using: .utf8),
+                let JWTSignature = Data(base64urlEncoded: "KOJv0MUveeDr5HQwbA4lX31FDJAP-46MIr5rdd1T_4ppSGIfCrN81uyqbs7pbnYta_-_f6EZe6O60BwiotmlE4qLBW_Db2XGOvU0R5z2RMH8rtaNxkKnorsh-ZHn40Xu") else {
+                    return XCTFail("Failed to create JWT digest")
+            }
+            let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
+            let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPem384PublicKey)
+            let sig = try ECSignature(r: r, s: s)
+            let verified = sig.verify(plaintext: JWTDigest, using: ecdsaPublicKey)
+            XCTAssertTrue(verified)
+        } catch {
+            return XCTFail("test_Pem384ECDSAVerify failed: \(error)")
         }
-        let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
-        let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
-        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem384PublicKey),
-            let sig = try? ECSignature(r: r, s: s)
-            else {
-                return XCTFail()
-        }
-        let verified = sig.verify(plaintext: JWTDigest, using: ecdsaPublicKey)
-        XCTAssert(verified == true)
     }
     
     func test_Pem512ECDSACycle() {
-        guard let exampleJWTHeader = try? JSONSerialization.data(withJSONObject: ["alg": "ES512", "typ": "JWT", "kid": "xZDfZpry4P9vZPZyG2fNBRj-7Lz5omVdm7tHoCgSNfY"]),
-            let exampleJWTClaims = try? JSONSerialization.data(withJSONObject: ["sub": "1234567890", "name": "John Doe", "admin": true, "iat": 1516239022])
-            else {
-                return XCTFail("Failed to serialize JWT to JSON")
+        do {
+            guard let exampleJWTHeader = try? JSONSerialization.data(withJSONObject: ["alg": "ES512", "typ": "JWT", "kid": "xZDfZpry4P9vZPZyG2fNBRj-7Lz5omVdm7tHoCgSNfY"]),
+                let exampleJWTClaims = try? JSONSerialization.data(withJSONObject: ["sub": "1234567890", "name": "John Doe", "admin": true, "iat": 1516239022])
+                else {
+                    return XCTFail("Failed to serialize JWT to JSON")
+            }
+            
+            let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
+            
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecPem512PrivateKey)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPem512PublicKey)
+            let signature = try unsignedJWT.sign(with: ecdsaPrivateKey)
+            let verified = signature.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
+            XCTAssertTrue(verified)
+        } catch {
+            return XCTFail("test_Pem512ECDSACycle failed: \(error)")
         }
-        
-        let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
-        
-        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPem512PrivateKey) else {
-            return XCTFail()
-        }
-        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem512PublicKey) else {
-            return XCTFail()
-        }
-        let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
-        let verified = signature?.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
-        XCTAssert(verified == true)
     }
     
     func test_P8ES512Cycle() {
-        guard let exampleJWTHeader = try? JSONSerialization.data(withJSONObject: ["alg": "ES512", "typ": "JWT", "kid": "iTqXXI0zbAnJCKDaobfhkM1f-6rMSpTfyZMRp_2tKI8"]),
-            let exampleJWTClaims = try? JSONSerialization.data(withJSONObject: ["sub": "1234567890", "name": "John Doe", "admin": true, "iat": 1516239022])
-            else {
-                return XCTFail("Failed to serialize JWT to JSON")
+        do {
+            guard let exampleJWTHeader = try? JSONSerialization.data(withJSONObject: ["alg": "ES512", "typ": "JWT", "kid": "iTqXXI0zbAnJCKDaobfhkM1f-6rMSpTfyZMRp_2tKI8"]),
+                let exampleJWTClaims = try? JSONSerialization.data(withJSONObject: ["sub": "1234567890", "name": "John Doe", "admin": true, "iat": 1516239022])
+                else {
+                    return XCTFail("Failed to serialize JWT to JSON")
+            }
+            
+            let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
+            
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecP8ES512PrivateKey)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPem512PublicKey)
+            let signature = try unsignedJWT.sign(with: ecdsaPrivateKey)
+            let verified = signature.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
+            XCTAssertTrue(verified)
+        } catch {
+            return XCTFail("test_P8ES512Cycle failed: \(error)")
         }
-        
-        let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
-        
-        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecP8ES512PrivateKey) else {
-            return XCTFail()
-        }
-        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem512PublicKey) else {
-            return XCTFail()
-        }
-        let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
-        let verified = signature?.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
-        XCTAssert(verified == true)
     }
     
     func test_Pem512ECDSAVerify() {
-        // generated from jwt.io
-        guard let JWTDigest =  "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzUxMiJ9.eyJuYW1lIjoiSm9obiBEb2UiLCJpYXQiOjE1MTYyMzkwMjIsImFkbWluIjp0cnVlLCJzdWIiOiIxMjM0NTY3ODkwIn0".data(using: .utf8),
-            let JWTSignature = Data(base64urlEncoded: "Aem_D3xHktMbg_RAjvmpvLDcazsLKyU7xskklO54-G3FN2Z20u64zxH9t5raHLoMyfYZIaRhLMEqPVq8DkFS4Z0DAUhR3ZfuEEIvQzVY3S6cS_0WuLPstwHsURrEZqPs0afoxR0E8HSauv83hXmm9OOkTqUYstdFyDvKM6qEB6qktla0") else {
-                return XCTFail("Failed to create JWT digest")
+        do {
+            // generated from jwt.io
+            guard let JWTDigest =  "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzUxMiJ9.eyJuYW1lIjoiSm9obiBEb2UiLCJpYXQiOjE1MTYyMzkwMjIsImFkbWluIjp0cnVlLCJzdWIiOiIxMjM0NTY3ODkwIn0".data(using: .utf8),
+                let JWTSignature = Data(base64urlEncoded: "Aem_D3xHktMbg_RAjvmpvLDcazsLKyU7xskklO54-G3FN2Z20u64zxH9t5raHLoMyfYZIaRhLMEqPVq8DkFS4Z0DAUhR3ZfuEEIvQzVY3S6cS_0WuLPstwHsURrEZqPs0afoxR0E8HSauv83hXmm9OOkTqUYstdFyDvKM6qEB6qktla0") else {
+                    return XCTFail("Failed to create JWT digest")
+            }
+            let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
+            let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPem512PublicKey)
+            let sig = try ECSignature(r: r, s: s)
+            let verified = sig.verify(plaintext: JWTDigest, using: ecdsaPublicKey)
+            XCTAssertTrue(verified)
+        } catch {
+            return XCTFail("test_Pem512ECDSAVerify failed: \(error)")
         }
-        let r = JWTSignature.subdata(in: 0 ..< JWTSignature.count/2)
-        let s = JWTSignature.subdata(in: JWTSignature.count/2 ..< JWTSignature.count)
-        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem512PublicKey),
-            let sig = try? ECSignature(r: r, s: s)
-        else {
-            return XCTFail()
-        }
-        let verified = sig.verify(plaintext: JWTDigest, using: ecdsaPublicKey)
-        XCTAssert(verified == true)
     }
     
     func test_IncorrectPublicKey() {
-        guard let exampleJWTHeader = try? JSONSerialization.data(withJSONObject: ["alg": "ES256", "typ": "JWT"]),
-            let exampleJWTClaims = try? JSONSerialization.data(withJSONObject: ["sub": "1234567890", "admin": true, "iat": 1516239022])
-            else {
-                return XCTFail("Failed to serialize JWT to JSON")
+        do {
+            guard let exampleJWTHeader = try? JSONSerialization.data(withJSONObject: ["alg": "ES256", "typ": "JWT"]),
+                let exampleJWTClaims = try? JSONSerialization.data(withJSONObject: ["sub": "1234567890", "admin": true, "iat": 1516239022])
+                else {
+                    return XCTFail("Failed to serialize JWT to JSON")
+            }
+            
+            let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
+            
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecPemPrivateKey)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPem384PublicKey)
+            let signature = try unsignedJWT.sign(with: ecdsaPrivateKey)
+            let verified = signature.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
+            XCTAssertFalse(verified)
+        } catch {
+            return XCTFail("test_IncorrectPublicKey failed: \(error)")
         }
-        
-        let unsignedJWT = exampleJWTHeader.base64urlEncodedString() + "." + exampleJWTClaims.base64urlEncodedString()
-        
-        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPemPrivateKey) else {
-            return XCTFail()
-        }
-        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPem384PublicKey) else {
-            return XCTFail()
-        }
-        let signature = try? unsignedJWT.sign(with: ecdsaPrivateKey)
-        let verified = signature?.verify(plaintext: unsignedJWT, using: ecdsaPublicKey)
-        XCTAssertFalse(verified ?? false)
     }
     
     func test_IncorrectPlaintext() {
-        
-        let plaintext = "Hello world"
-        let changedPlaintext = "Hello Kitura"
-        guard let plaintextData = plaintext.data(using: .utf8),
-            let changedPlaintextData = changedPlaintext.data(using: .utf8)
-            else {
-                return XCTFail("Failed to encode unsignedJWT to utf8")
+        do {
+            let plaintext = "Hello world"
+            let changedPlaintext = "Hello Kitura"
+            guard let plaintextData = plaintext.data(using: .utf8),
+                let changedPlaintextData = changedPlaintext.data(using: .utf8)
+                else {
+                    return XCTFail("Failed to encode unsignedJWT to utf8")
+            }
+            
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecPemPrivateKey)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPemPublicKey)
+            let signature = try plaintextData.sign(with: ecdsaPrivateKey)
+            let verified = signature.verify(plaintext: changedPlaintextData, using: ecdsaPublicKey)
+            XCTAssertFalse(verified)
+        } catch {
+            return XCTFail("test_IncorrectPlaintext failed: \(error)")
         }
-        
-        guard let ecdsaPrivateKey = try? ECPrivateKey(key: ecPemPrivateKey) else {
-            return XCTFail()
+    }
+    
+    func test_EncryptionCycle() {
+        do {
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecPemPrivateKey)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPemPublicKey)
+            let encrypted = try "Hello world".encrypt(with: ecdsaPublicKey)
+            let decrypted = try encrypted.decrypt(with: ecdsaPrivateKey)
+            XCTAssert(String(data: decrypted, encoding: .utf8) == "Hello world")
+        } catch {
+            return XCTFail("test_EncryptionCycle failed: \(error)")
         }
-        guard let ecdsaPublicKey = try? ECPublicKey(key: ecPemPublicKey) else {
-            return XCTFail()
+    }
+    
+    func test_MacEncrypted() {
+        do {
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecPemPrivateKey)
+            guard let encrypted = Data(base64Encoded: "BDDIvmY4i0y064se0TcXoSnbYP0eyMMoCMT+3Jfxe7I8hlHYXMPpVMsOvjLWTe0Mj0/gMS1bMq9BCO2bPC0gC+Y2ZzMu9uGoqK7H/BnEjUIBjNGUKrA2VtahQaU=") else {
+                return XCTFail("MacEncrypted was invalid Base64 String")
+            }
+            let decrypted = try encrypted.decrypt(with: ecdsaPrivateKey)
+            XCTAssert(String(data: decrypted, encoding: .utf8) == "Hello world")
+        } catch {
+            return XCTFail("test_MacEncrypted failed: \(error)")
         }
-        let signature = try? plaintextData.sign(with: ecdsaPrivateKey)
-        
-        let verified = signature?.verify(plaintext: changedPlaintextData, using: ecdsaPublicKey)
-        XCTAssertFalse(verified ?? false)
+    }
+    func test_LinuxEncrypted() {
+        do {
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecPemPrivateKey)
+            guard let encrypted = Data(base64Encoded: "BIcZ+Nlo+pQLaaY3hUcvYXbeleakSPp18KBlLGEV+IvuFNp+gdKWpdqJ602UWAd6OJBBaGvISzzLF1kVxLuHUFopIK3rPjxF4IXRLYMQpmoyQOl41vby/3kkZt0=") else {
+                return XCTFail("MacEncrypted was invalid Base64 String")
+            }
+            let decrypted = try encrypted.decrypt(with: ecdsaPrivateKey)
+            XCTAssert(String(data: decrypted, encoding: .utf8) == "Hello world")
+        } catch {
+            return XCTFail("test_LinuxEncrypted failed: \(error)")
+        }
+    }
+    
+    func test_EncryptionCycle384() {
+        do {
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecPem384PrivateKey)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPem384PublicKey)
+            let encrypted = try "Hello world".encrypt(with: ecdsaPublicKey)
+            let decrypted = try encrypted.decrypt(with: ecdsaPrivateKey)
+            XCTAssert(String(data: decrypted, encoding: .utf8) == "Hello world")
+        } catch {
+            return XCTFail("test_EncryptionCycle384 failed: \(error)")
+        }
+    }
+    
+    // Cross platform encryption is not currently working with 384 curves
+
+    func test_EncryptionCycle512() {
+        do {
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecPem512PrivateKey)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPem512PublicKey)
+            let encrypted = try "Hello world".encrypt(with: ecdsaPublicKey)
+            let decrypted = try encrypted.decrypt(with: ecdsaPrivateKey)
+            XCTAssert(String(data: decrypted, encoding: .utf8) == "Hello world")
+        } catch {
+            return XCTFail("test_EncryptionCycle384 failed: \(error)")
+        }
+    }
+    
+    // Cross platform encryption is not currently working with 512 curves
+    
+    func test_ExtractPublicKey() {
+        do {
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecPemPrivateKey)
+            let ecdsaPublicKey = try ecdsaPrivateKey.extractPublicKey()
+            XCTAssert(ecdsaPublicKey.pemString == ecPemPublicKey)
+            
+            let p8PrivateKey = try ECPrivateKey(key: ecP8PrivateKey)
+            let p8PublicKey = try p8PrivateKey.extractPublicKey()
+            XCTAssert(p8PublicKey.pemString == ecP8PublicKey)
+
+            let privateKey384 = try ECPrivateKey(key: ecPem384PrivateKey)
+            let publicKey384 = try privateKey384.extractPublicKey()
+            XCTAssert(publicKey384.pemString == ecPem384PublicKey)
+            
+            let privateKey512 = try ECPrivateKey(key: ecPem512PrivateKey)
+            let publicKey512 = try privateKey512.extractPublicKey()
+            XCTAssert(publicKey512.pemString == ecPem512PublicKey)
+        } catch {
+            return XCTFail("test_ExtractPublicKey failed: \(error)")
+        }
     }
 }
 
