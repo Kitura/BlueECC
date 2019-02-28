@@ -47,6 +47,8 @@ import OpenSSL
  */
 @available(OSX 10.13, *)
 public class ECPublicKey {
+    /// The Elliptic curve this key was generated from.
+    public let curveId: String
     #if os(Linux)
     typealias NativeKey = OpaquePointer?
     let pubKeyBytes: Data
@@ -111,6 +113,7 @@ public class ECPublicKey {
             throw ECError.failedASN1Decoding
         }
         self.algorithm = try ECAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID)
+        self.curveId = self.algorithm.id.rawValue
         let keyData = publicKeyData.drop(while: { $0 == 0x00})
         #if os(Linux)
             self.pubKeyBytes = keyData

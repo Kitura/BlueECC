@@ -65,15 +65,15 @@ extension Data {
         defer {
             EC_POINT_free(pubk_point)
         }
-        let pubk_bn = encryptedKey.withUnsafeBytes({ (pubk: UnsafePointer<UInt8>) -> UnsafeMutablePointer<BIGNUM> in
-            return BN_bin2bn(pubk, Int32(encryptedKey.count), nil)
+        encryptedKey.withUnsafeBytes({ (pubk: UnsafePointer<UInt8>) in
+            let pubk_bn = BN_bin2bn(pubk, Int32(encryptedKey.count), nil)
+            let pubk_bn_ctx = BN_CTX_new()
+            BN_CTX_start(pubk_bn_ctx)
+            EC_POINT_bn2point(ec_group, pubk_bn, pubk_point, pubk_bn_ctx)
+            BN_CTX_end(pubk_bn_ctx)
+            BN_CTX_free(pubk_bn_ctx)
+            BN_clear_free(pubk_bn)
         })
-        let pubk_bn_ctx = BN_CTX_new()
-        BN_CTX_start(pubk_bn_ctx)
-        EC_POINT_bn2point(ec_group, pubk_bn, pubk_point, pubk_bn_ctx)
-        BN_CTX_end(pubk_bn_ctx)
-        BN_CTX_free(pubk_bn_ctx)
-        BN_clear_free(pubk_bn)
 
         // calculate symmetric key
         ECDH_compute_key(symKey, skey_len, pubk_point, key.nativeKey, nil)
