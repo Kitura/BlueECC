@@ -57,6 +57,9 @@ extension Data: ECEncryptable {
     #if os(Linux)
         // Compute symmetric key
         let ec_key = EC_KEY_new_by_curve_name(key.algorithm.curve)
+        defer {
+            EC_KEY_free(ec_key)
+        }
         EC_KEY_generate_key(ec_key)
         let ec_group = EC_KEY_get0_group(ec_key)
         let symKey_len = Int((EC_GROUP_get_degree(ec_group) + 7) / 8)
@@ -77,8 +80,10 @@ extension Data: ECEncryptable {
             BN_clear_free(pub_bn)
             #if swift(>=4.1)
             pubk.deallocate()
+            symKey.deallocate()
             #else
             pubk.deallocate(capacity: key.algorithm.keySize)
+            symKey.deallocate(capacity: symKey_len)
             #endif
         }
         
