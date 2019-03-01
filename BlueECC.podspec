@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name        = "BlueECC"
-  s.version     = "0.0.1"
+  s.version     = "1.0.0"
   s.summary     = "Swift cross-platform ECC crypto library using CommonCrypto/libcrypto via Package Manager."
   s.homepage    = "https://github.com/IBM-Swift/BlueECC"
   s.license     = { :type => "Apache License, Version 2.0" }
