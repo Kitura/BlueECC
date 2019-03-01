@@ -50,6 +50,7 @@ extension Data {
         let decrypted = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(encryptedData.count + 16))
         defer {
             // On completion deallocate the memory
+            EVP_CIPHER_CTX_reset_wrapper(rsaDecryptCtx)
             EVP_CIPHER_CTX_free_wrapper(rsaDecryptCtx)
             #if swift(>=4.1)
             symKey.deallocate()
