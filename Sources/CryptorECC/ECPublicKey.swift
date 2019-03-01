@@ -140,8 +140,7 @@ public class ECPublicKey {
             var error: Unmanaged<CFError>? = nil
             guard let secKey = SecKeyCreateWithData(keyData as CFData,
                                                     [kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom,
-                                                     kSecAttrKeyClass: kSecAttrKeyClassPublic,
-                                                     kSecAttrKeySizeInBits: 256] as CFDictionary,
+                                                     kSecAttrKeyClass: kSecAttrKeyClassPublic] as CFDictionary,
                                                      &error)
             else {
                 if let secError = error?.takeRetainedValue() {

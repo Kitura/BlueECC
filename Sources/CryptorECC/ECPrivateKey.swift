@@ -144,10 +144,11 @@ public class ECPrivateKey {
         } else {
             throw ECError.failedASN1Decoding
         }
+        let trimmedPubBytes = publicKeyData.drop(while: { $0 == 0x00})
         self.nativeKey =  try ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData,
-                                                            publicKeyData: publicKeyData,
+                                                            publicKeyData: trimmedPubBytes,
                                                             algorithm: algorithm)
-        self.pubKeyBytes = publicKeyData
+        self.pubKeyBytes = trimmedPubBytes
     }
 
     /// Initialize an ECPrivateKey from a SEC1 `.der` file data.  
@@ -173,10 +174,11 @@ public class ECPrivateKey {
         else {
             throw ECError.failedASN1Decoding
         }
+        let trimmedPubBytes = publicKeyData.drop(while: { $0 == 0x00})
         self.nativeKey =  try ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData,
-                                                            publicKeyData: publicKeyData,
+                                                            publicKeyData: trimmedPubBytes,
                                                             algorithm: algorithm)
-        self.pubKeyBytes = publicKeyData.drop(while: { $0 == 0x00})
+        self.pubKeyBytes = trimmedPubBytes
     }
     
     /// Initialize the `ECPublicKey`for this private key by extracting the public key bytes.
@@ -233,12 +235,11 @@ public class ECPrivateKey {
             }
             return ecKey
         #else
-            let keyData = publicKeyData.drop(while: { $0 == 0x00}) + privateKeyData
+            let keyData = publicKeyData + privateKeyData
             var error: Unmanaged<CFError>? = nil
             guard let secKey = SecKeyCreateWithData(keyData as CFData,
                                                     [kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom,
-                                                     kSecAttrKeyClass: kSecAttrKeyClassPrivate,
-                                                     kSecAttrKeySizeInBits: 256] as CFDictionary,
+                                                     kSecAttrKeyClass: kSecAttrKeyClassPrivate] as CFDictionary,
                                                     &error)
             else {
                 if let secError = error?.takeRetainedValue() {
