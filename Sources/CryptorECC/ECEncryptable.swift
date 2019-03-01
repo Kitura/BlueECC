@@ -119,7 +119,7 @@ extension Data: ECEncryptable {
             encrypted.deallocate()
             #else
             tag.deallocate(capacity: 16)
-            encrypted.deallocate(capacity: data.count + 16)
+            encrypted.deallocate(capacity: self.count + 16)
             #endif
         }
         

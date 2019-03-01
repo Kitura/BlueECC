@@ -24,6 +24,10 @@
 
 A cross platform Swift implementation of Elliptic Curve Digital Signature Algorithm (ECDSA) and Elliptic Curve Integrated Encryption Scheme (ECIES). This allows you to sign, verify, encrypt and decrypt using elliptic curve keys.
 
+## Swift version
+
+The latest version of BlueECC requires **Swift 4.1** or later. You can download this version of the Swift binaries by following this [link](https://swift.org/download/). Compatibility with other Swift versions is not guaranteed.
+
 ## Usage
 
 #### Add dependencies
@@ -46,7 +50,7 @@ Add `CryptorECC` to your target's dependencies:
 import CryptorECC
 ```
 
-## Usage guide
+### Getting Started
 
 #### Elliptic curve private key
 

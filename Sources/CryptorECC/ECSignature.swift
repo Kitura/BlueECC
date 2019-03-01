@@ -102,7 +102,7 @@ public struct ECSignature {
         }
     
         let rc = self.asn1.withUnsafeBytes({ (sig: UnsafePointer<UInt8>) -> Int32 in
-            return EVP_DigestVerifyFinal(md_ctx, sig, self.asn1.count)
+            return SSL_EVP_digestVerifyFinal_wrapper(md_ctx, sig, self.asn1.count)
         })
 
         return rc == 1

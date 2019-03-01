@@ -45,13 +45,14 @@ import OpenSSL
  */
 @available(OSX 10.13, *)
 public class ECPrivateKey {
+    /// The Elliptic curve this key was generated from.
+    public let curveId: String
     #if os(Linux)
         typealias NativeKey = OpaquePointer?
         deinit { EC_KEY_free(.make(optional: self.nativeKey)) }
     #else
         typealias NativeKey = SecKey
     #endif
-
     let nativeKey: NativeKey
     let algorithm: ECAlgorithm
     let pubKeyBytes: Data
@@ -119,6 +120,7 @@ public class ECPrivateKey {
             throw ECError.failedASN1Decoding
         }
         self.algorithm = try ECAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID)
+        self.curveId = self.algorithm.id.rawValue
         guard case let ASN1.ASN1Element.bytes(data: privateOctest) = es[2] else {
             throw ECError.failedASN1Decoding
         }
@@ -142,10 +144,11 @@ public class ECPrivateKey {
         } else {
             throw ECError.failedASN1Decoding
         }
+        let trimmedPubBytes = publicKeyData.drop(while: { $0 == 0x00})
         self.nativeKey =  try ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData,
-                                                            publicKeyData: publicKeyData,
+                                                            publicKeyData: trimmedPubBytes,
                                                             algorithm: algorithm)
-        self.pubKeyBytes = publicKeyData
+        self.pubKeyBytes = trimmedPubBytes
     }
 
     /// Initialize an ECPrivateKey from a SEC1 `.der` file data.  
@@ -165,15 +168,17 @@ public class ECPrivateKey {
             throw ECError.failedASN1Decoding
         }
         self.algorithm = try ECAlgorithm.objectToHashAlg(ObjectIdentifier: objectId)
+        self.curveId = self.algorithm.id.rawValue
         guard case let ASN1.ASN1Element.constructed(tag: _, elem: publicElement) = seq[3],
             case let ASN1.ASN1Element.bytes(data: publicKeyData) = publicElement
         else {
             throw ECError.failedASN1Decoding
         }
+        let trimmedPubBytes = publicKeyData.drop(while: { $0 == 0x00})
         self.nativeKey =  try ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData,
-                                                            publicKeyData: publicKeyData,
+                                                            publicKeyData: trimmedPubBytes,
                                                             algorithm: algorithm)
-        self.pubKeyBytes = publicKeyData.drop(while: { $0 == 0x00})
+        self.pubKeyBytes = trimmedPubBytes
     }
     
     /// Initialize the `ECPublicKey`for this private key by extracting the public key bytes.
@@ -187,17 +192,17 @@ public class ECPrivateKey {
         //         OBJECT IDENTIFIER
         //         OBJECT IDENTIFIER
         //     BIT STRING (This is the `pubKeyBytes` added afterwards)
-        if self.algorithm.id == .p256 {
+        if self.algorithm.id == .prime256v1 {
             keyHeader = Data(bytes: [0x30, 0x59,
                                      0x30, 0x13,
                                      0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
                                      0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x03, 0x42])
-        } else if self.algorithm.id == .p384 {
+        } else if self.algorithm.id == .secp384r1 {
             keyHeader = Data(bytes: [0x30, 0x76,
                                      0x30, 0x10,
                                      0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
                                      0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x22, 0x03, 0x62])
-        } else if self.algorithm.id == .p521 {
+        } else if self.algorithm.id == .secp521r1 {
             keyHeader = Data(bytes: [0x30, 0x81, 0x9B,
                                      0x30, 0x10,
                                      0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
@@ -230,12 +235,11 @@ public class ECPrivateKey {
             }
             return ecKey
         #else
-            let keyData = publicKeyData.drop(while: { $0 == 0x00}) + privateKeyData
+            let keyData = publicKeyData + privateKeyData
             var error: Unmanaged<CFError>? = nil
             guard let secKey = SecKeyCreateWithData(keyData as CFData,
                                                     [kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom,
-                                                     kSecAttrKeyClass: kSecAttrKeyClassPrivate,
-                                                     kSecAttrKeySizeInBits: 256] as CFDictionary,
+                                                     kSecAttrKeyClass: kSecAttrKeyClassPrivate] as CFDictionary,
                                                     &error)
             else {
                 if let secError = error?.takeRetainedValue() {

@@ -26,7 +26,7 @@ import Foundation
 struct ECAlgorithm {
     #if os(Linux)
         typealias CC_LONG = size_t
-        let signingAlgorithm: UnsafePointer<EVP_MD>
+        let signingAlgorithm: OpaquePointer?
         let curve: Int32
         let hashEngine: (_ data: UnsafePointer<UInt8>, _ len: CC_LONG, _ md: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8>? = SHA256
         let hashLength: size_t = CC_LONG(SHA256_DIGEST_LENGTH)
@@ -37,54 +37,54 @@ struct ECAlgorithm {
         let hashLength: CC_LONG
     #endif
     let keySize: Int
-    enum Pid {
-        case p256, p384, p521
+    enum Pid: String {
+        case prime256v1, secp384r1, secp521r1
     }
     let id: Pid
     
     #if os(Linux)
     /// Secure Hash Algorithm 2 256-bit
-    static let p256 = ECAlgorithm(signingAlgorithm: EVP_sha256(),
+    static let p256 = ECAlgorithm(signingAlgorithm: .init(EVP_sha256()),
                                     curve: NID_X9_62_prime256v1,
                                     keySize: 65,
-                                    id: .p256)
+                                    id: .prime256v1)
     #else
     /// Secure Hash Algorithm 2 256-bit
     static let p256 = ECAlgorithm(signingAlgorithm: .ecdsaSignatureDigestX962SHA256,
                                     hashEngine: CC_SHA256,
                                     hashLength: CC_LONG(CC_SHA256_DIGEST_LENGTH),
                                     keySize: 65,
-                                    id: .p256)
+                                    id: .prime256v1)
     #endif
 
     #if os(Linux)
     /// Secure Hash Algorithm 2 384-bit
-    static let p384 = ECAlgorithm(signingAlgorithm: EVP_sha384(),
+    static let p384 = ECAlgorithm(signingAlgorithm: .init(EVP_sha384()),
                                       curve: NID_secp384r1,
                                       keySize: 97,
-                                      id: .p384)
+                                      id: .secp384r1)
     #else
     /// Secure Hash Algorithm 2 384-bit
     static let p384 = ECAlgorithm(signingAlgorithm: .ecdsaSignatureDigestX962SHA384,
                                     hashEngine: CC_SHA384,
                                     hashLength: CC_LONG(CC_SHA384_DIGEST_LENGTH),
                                     keySize: 97,
-                                    id: .p384)
+                                    id: .secp384r1)
     #endif
 
     #if os(Linux)
     /// Secure Hash Algorithm 512-bit
-    static let p521 = ECAlgorithm(signingAlgorithm: EVP_sha512(),
+    static let p521 = ECAlgorithm(signingAlgorithm: .init(EVP_sha512()),
                                       curve: NID_secp521r1,
                                       keySize: 133,
-                                      id: .p521)
+                                      id: .secp521r1)
     #else
     /// Secure Hash Algorithm 512-bit
     static let p521 = ECAlgorithm(signingAlgorithm: .ecdsaSignatureDigestX962SHA512,
                                     hashEngine: CC_SHA512,
                                     hashLength: CC_LONG(CC_SHA512_DIGEST_LENGTH),
                                     keySize: 133,
-                                    id: .p521)
+                                    id: .secp521r1)
     #endif
 
     // Select the ECAlgorithm based on the object identifier (OID) extracted from the EC key.

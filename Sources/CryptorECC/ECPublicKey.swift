@@ -47,6 +47,8 @@ import OpenSSL
  */
 @available(OSX 10.13, *)
 public class ECPublicKey {
+    /// The Elliptic curve this key was generated from.
+    public let curveId: String
     #if os(Linux)
     typealias NativeKey = OpaquePointer?
     let pubKeyBytes: Data
@@ -111,6 +113,7 @@ public class ECPublicKey {
             throw ECError.failedASN1Decoding
         }
         self.algorithm = try ECAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID)
+        self.curveId = self.algorithm.id.rawValue
         let keyData = publicKeyData.drop(while: { $0 == 0x00})
         #if os(Linux)
             self.pubKeyBytes = keyData
@@ -137,8 +140,7 @@ public class ECPublicKey {
             var error: Unmanaged<CFError>? = nil
             guard let secKey = SecKeyCreateWithData(keyData as CFData,
                                                     [kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom,
-                                                     kSecAttrKeyClass: kSecAttrKeyClassPublic,
-                                                     kSecAttrKeySizeInBits: 256] as CFDictionary,
+                                                     kSecAttrKeyClass: kSecAttrKeyClassPublic] as CFDictionary,
                                                      &error)
             else {
                 if let secError = error?.takeRetainedValue() {
