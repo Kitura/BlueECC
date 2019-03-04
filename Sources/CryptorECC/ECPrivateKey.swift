@@ -56,8 +56,63 @@ public class ECPrivateKey {
     let nativeKey: NativeKey
     let algorithm: ECAlgorithm
     let pubKeyBytes: Data
+    private var stripped: Bool = false
 
 
+    /**
+     Initialise an new ECPrivate key from a supported `Curve`
+     ### Usage Example:
+     ```swift
+     let key = try ECPrivateKey(forCurve: .prime256v1)
+     ```
+     - Parameter forCurve: The elliptic curve that is used to generate the key.
+     - Returns: An ECPrivateKey.
+     - Throws: An ECError if the key fails to be created.
+    */
+    public init(forCurve: Curve) throws {
+        self.algorithm = forCurve.algorithm
+        self.curveId = forCurve.algorithm.id.rawValue
+        #if os(Linux)
+            // Not implemented
+            throw fatalError()
+            // Compute symmetric key
+            let ec_key = EC_KEY_new_by_curve_name(forCurve.algorithm.curve)
+            EC_KEY_generate_key(ec_key)
+            self.nativeKey = ec_key
+            //EC_KEY_key2buf()
+        #else
+            let kAsymmetricCryptoManagerKeyType = kSecAttrKeyTypeECSECPrimeRandom
+            let kAsymmetricCryptoManagerKeySize: Int
+            if forCurve == .prime256v1 {
+                kAsymmetricCryptoManagerKeySize = 256
+            } else if forCurve == .secp384r1 {
+                kAsymmetricCryptoManagerKeySize = 384
+            } else {
+                kAsymmetricCryptoManagerKeySize = 521
+            }
+            // parameters
+            let parameters: [String: AnyObject] = [
+                kSecAttrKeyType as String:          kAsymmetricCryptoManagerKeyType,
+                kSecAttrKeySizeInBits as String:    kAsymmetricCryptoManagerKeySize as AnyObject,
+                ]
+            var pubKey, privKey: SecKey?
+            let status = SecKeyGeneratePair(parameters as CFDictionary, &pubKey, &privKey)
+            guard status == 0, let newPubKey = pubKey, let newPrivKey = privKey else {
+                throw ECError.failedNativeKeyCreation
+            }
+            var error: Unmanaged<CFError>? = nil
+            guard let pubBytes = SecKeyCopyExternalRepresentation(newPubKey, &error) else {
+                guard let error = error?.takeRetainedValue() else {
+                    throw ECError.failedNativeKeyCreation
+                }
+                throw error
+            }
+            stripped = true
+            self.pubKeyBytes = pubBytes as Data
+            self.nativeKey = newPrivKey
+        #endif
+    }
+    
     /**
      Initialize an ECPrivateKey from a PEM String.
      This can either be from a `.p8` file with the header "-----BEGIN PRIVATE KEY-----",
@@ -145,6 +200,9 @@ public class ECPrivateKey {
             throw ECError.failedASN1Decoding
         }
         let trimmedPubBytes = publicKeyData.drop(while: { $0 == 0x00})
+        if trimmedPubBytes.count != publicKeyData.count {
+            stripped = true
+        }
         self.nativeKey =  try ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData,
                                                             publicKeyData: trimmedPubBytes,
                                                             algorithm: algorithm)
@@ -175,6 +233,9 @@ public class ECPrivateKey {
             throw ECError.failedASN1Decoding
         }
         let trimmedPubBytes = publicKeyData.drop(while: { $0 == 0x00})
+        if trimmedPubBytes.count != publicKeyData.count {
+            stripped = true
+        }
         self.nativeKey =  try ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData,
                                                             publicKeyData: trimmedPubBytes,
                                                             algorithm: algorithm)
@@ -212,7 +273,7 @@ public class ECPrivateKey {
         }
         // If we stripped the leading zero earlier, add it back here
         var pubBytes = self.pubKeyBytes
-        if pubBytes.startIndex != 0 {
+        if stripped {
             pubBytes = Data(count: 1) + self.pubKeyBytes
         }
         return try ECPublicKey(der: keyHeader + pubBytes)

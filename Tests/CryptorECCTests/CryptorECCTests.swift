@@ -450,6 +450,30 @@ Mw==
             return XCTFail("test_ExtractPublicKey failed: \(error)")
         }
     }
+    
+    func test_newPrivatekey() {
+        do {
+            let p256PrivateKey = try ECPrivateKey(forCurve: .prime256v1)
+            let p256PubKey = try p256PrivateKey.extractPublicKey()
+            let signature = try "Hello world".sign(with: p256PrivateKey)
+            let verified = signature.verify(plaintext: "Hello world", using: p256PubKey)
+            XCTAssertTrue(verified)
+            
+            let secp384r1Key = try ECPrivateKey(forCurve: .secp384r1)
+            let secp384r1PubKey = try secp384r1Key.extractPublicKey()
+            let encrypted = try "Hello world".encrypt(with: secp384r1PubKey)
+            let decrypted = try encrypted.decrypt(with: secp384r1Key)
+            XCTAssertEqual("Hello world", String(data: decrypted, encoding: .utf8))
+            
+            let secp521r1Key = try ECPrivateKey(forCurve: .secp521r1)
+            let secp521r1PubKey = try secp521r1Key.extractPublicKey()
+            let signature521 = try "Hello world".sign(with: secp521r1Key)
+            let verified521 = signature521.verify(plaintext: "Hello world", using: secp521r1PubKey)
+            XCTAssertTrue(verified521)
+        } catch {
+            return XCTFail("test_ExtractPublicKey failed: \(error)")
+        }
+    }
 }
 
 extension Data {
