@@ -9,8 +9,8 @@
     <a href="https://ibm-swift.github.io/BlueECC/index.html">
     <img src="https://img.shields.io/badge/apidoc-BlueECC-1FBCE4.svg?style=flat" alt="APIDoc">
     </a>
-    <a href="https://travis-ci.org/IBM-Swift/Kitura-BlueECC">
-    <img src="https://travis-ci.org/IBM-Swift/Kitura-BlueECC.svg?branch=master" alt="Build Status - Master">
+    <a href="https://travis-ci.org/IBM-Swift/BlueECC">
+    <img src="https://travis-ci.org/IBM-Swift/BlueECC.svg?branch=master" alt="Build Status - Master">
     </a>
     <img src="https://img.shields.io/badge/os-macOS-green.svg?style=flat" alt="macOS">
     <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux">
