@@ -52,7 +52,7 @@ public class ECPublicKey {
         return curve.description
     }
     
-    /// The Elliptic curve this key was generated from.
+    /// The `EllipticCurve` this key was generated from.
     public let curve: EllipticCurve
     #if os(Linux)
     typealias NativeKey = OpaquePointer?

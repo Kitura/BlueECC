@@ -49,7 +49,7 @@ public class ECPrivateKey {
     public var curveId: String {
         return curve.description
     }
-    /// The Elliptic curve this key was generated from.
+    /// The `EllipticCurve` this key was generated from.
     public let curve: EllipticCurve
     
     #if os(Linux)
