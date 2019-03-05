@@ -46,9 +46,8 @@ import OpenSSL
 @available(OSX 10.13, *)
 public class ECPrivateKey {
     /// A String description of the curve this key was generated from.
-    public var curveId: String {
-        return curve.description
-    }
+    public let curveId: String
+    
     /// The `EllipticCurve` this key was generated from.
     public let curve: EllipticCurve
     
@@ -152,6 +151,7 @@ public class ECPrivateKey {
                                                             publicKeyData: trimmedPubBytes,
                                                             curve: curve)
         self.pubKeyBytes = trimmedPubBytes
+        self.curveId = curve.description
     }
 
     /// Initialize an ECPrivateKey from a SEC1 `.der` file data.  
@@ -181,6 +181,7 @@ public class ECPrivateKey {
                                                             publicKeyData: trimmedPubBytes,
                                                             curve: curve)
         self.pubKeyBytes = trimmedPubBytes
+        self.curveId = curve.description
     }
     
     /// Initialize the `ECPublicKey`for this private key by extracting the public key bytes.
