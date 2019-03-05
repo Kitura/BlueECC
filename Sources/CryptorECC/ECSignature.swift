@@ -94,7 +94,7 @@ public struct ECSignature {
             return false
         }
     
-        EVP_DigestVerifyInit(md_ctx, nil, .make(optional: ecPublicKey.algorithm.signingAlgorithm), nil, evp_key)
+        EVP_DigestVerifyInit(md_ctx, nil, .make(optional: ecPublicKey.curve.signingAlgorithm), nil, evp_key)
         guard plaintext.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in
             return EVP_DigestUpdate(md_ctx, message, plaintext.count)
         }) == 1 else {
@@ -107,12 +107,12 @@ public struct ECSignature {
 
         return rc == 1
     #else
-        let hash = ecPublicKey.algorithm.digest(data: plaintext)
+        let hash = ecPublicKey.curve.digest(data: plaintext)
 
         // Memory storage for error from SecKeyVerifySignature
         var error: Unmanaged<CFError>? = nil
         return SecKeyVerifySignature(ecPublicKey.nativeKey,
-                                 ecPublicKey.algorithm.signingAlgorithm,
+                                 ecPublicKey.curve.signingAlgorithm,
                                  hash as CFData,
                                  self.asn1 as CFData,
                                  &error)
