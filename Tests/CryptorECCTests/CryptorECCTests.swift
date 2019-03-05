@@ -23,6 +23,7 @@ final class CryptorECCTests: XCTestCase {
             ("test_LinuxEncrypted", test_LinuxEncrypted),
             ("test_EncryptionCycle384", test_EncryptionCycle384),
             ("test_EncryptionCycle512", test_EncryptionCycle512),
+            ("test_newPrivatekey", test_newPrivatekey),
         ]
     
     let ecPemPrivateKey = """
@@ -458,7 +459,7 @@ Mw==
             let signature = try "Hello world".sign(with: p256PrivateKey)
             let verified = signature.verify(plaintext: "Hello world", using: p256PubKey)
             XCTAssertTrue(verified)
-            
+
             let secp384r1Key = try ECPrivateKey(forCurve: .secp384r1)
             let secp384r1PubKey = try secp384r1Key.extractPublicKey()
             let encrypted = try "Hello world".encrypt(with: secp384r1PubKey)

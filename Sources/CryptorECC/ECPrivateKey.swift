@@ -72,14 +72,30 @@ public class ECPrivateKey {
     public init(forCurve: Curve) throws {
         self.algorithm = forCurve.algorithm
         self.curveId = forCurve.algorithm.id.rawValue
+        self.stripped = true
         #if os(Linux)
-            // Not implemented
-            throw fatalError()
-            // Compute symmetric key
             let ec_key = EC_KEY_new_by_curve_name(forCurve.algorithm.curve)
             EC_KEY_generate_key(ec_key)
             self.nativeKey = ec_key
-            //EC_KEY_key2buf()
+            let pub_bn_ctx = BN_CTX_new()
+            BN_CTX_start(pub_bn_ctx)
+            let pub = EC_KEY_get0_public_key(ec_key)
+            let ec_group = EC_KEY_get0_group(ec_key)
+            let pub_bn = BN_new()
+            EC_POINT_point2bn(ec_group, pub, POINT_CONVERSION_UNCOMPRESSED, pub_bn, pub_bn_ctx)
+            let pubk = UnsafeMutablePointer<UInt8>.allocate(capacity: forCurve.algorithm.keySize)
+            BN_bn2bin(pub_bn, pubk)
+            self.pubKeyBytes = Data(bytes: pubk, count: forCurve.algorithm.keySize)
+            defer {
+                BN_CTX_end(pub_bn_ctx)
+                BN_CTX_free(pub_bn_ctx)
+                BN_clear_free(pub_bn)
+                #if swift(>=4.1)
+                pubk.deallocate()
+                #else
+                pubk.deallocate(capacity: forCurve.algorithm.keySize)
+                #endif
+            }
         #else
             let kAsymmetricCryptoManagerKeyType = kSecAttrKeyTypeECSECPrimeRandom
             let kAsymmetricCryptoManagerKeySize: Int
@@ -107,7 +123,6 @@ public class ECPrivateKey {
                 }
                 throw error
             }
-            stripped = true
             self.pubKeyBytes = pubBytes as Data
             self.nativeKey = newPrivKey
         #endif
