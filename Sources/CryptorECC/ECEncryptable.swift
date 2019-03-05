@@ -56,7 +56,7 @@ extension Data: ECEncryptable {
     public func encrypt(with key: ECPublicKey) throws -> Data {
     #if os(Linux)
         // Compute symmetric key
-        let ec_key = EC_KEY_new_by_curve_name(key.algorithm.curve)
+        let ec_key = EC_KEY_new_by_curve_name(key.curve.nativeCurve)
         defer {
             EC_KEY_free(ec_key)
         }
@@ -72,7 +72,7 @@ extension Data: ECEncryptable {
         let pub = EC_KEY_get0_public_key(ec_key)
         let pub_bn = BN_new()
         EC_POINT_point2bn(ec_group, pub, POINT_CONVERSION_UNCOMPRESSED, pub_bn, pub_bn_ctx)
-        let pubk = UnsafeMutablePointer<UInt8>.allocate(capacity: key.algorithm.keySize)
+        let pubk = UnsafeMutablePointer<UInt8>.allocate(capacity: key.curve.keySize)
         BN_bn2bin(pub_bn, pubk)
         defer {
             BN_CTX_end(pub_bn_ctx)
@@ -82,7 +82,7 @@ extension Data: ECEncryptable {
             pubk.deallocate()
             symKey.deallocate()
             #else
-            pubk.deallocate(capacity: key.algorithm.keySize)
+            pubk.deallocate(capacity: key.curve.keySize)
             symKey.deallocate(capacity: symKey_len)
             #endif
         }
@@ -90,9 +90,9 @@ extension Data: ECEncryptable {
         // get aes key and iv using ANSI x9.63 Key Derivation Function
         let symKeyData = Data(bytes: symKey, count: symKey_len)
         let counterData = Data(bytes: [0x00, 0x00, 0x00, 0x01])
-        let sharedInfo = Data(bytes: pubk, count: key.algorithm.keySize)
+        let sharedInfo = Data(bytes: pubk, count: key.curve.keySize)
         let preHashKey = symKeyData + counterData + sharedInfo
-        let hashedKey = key.algorithm.digest(data: preHashKey)
+        let hashedKey = key.curve.digest(data: preHashKey)
         let aesKey = [UInt8](hashedKey.subdata(in: 0 ..< (hashedKey.count - 16)))
         let iv = [UInt8](hashedKey.subdata(in: (hashedKey.count - 16) ..< hashedKey.count))
         
@@ -158,14 +158,14 @@ extension Data: ECEncryptable {
         }
 
         // Construct the envelope by combining the encrypted AES key, the encrypted date and the GCM tag.
-        let ekFinal = Data(bytes: pubk, count: key.algorithm.keySize)
+        let ekFinal = Data(bytes: pubk, count: key.curve.keySize)
         let cipher = Data(bytes: encrypted, count: Int(encLength))
         let tagFinal = Data(bytes: tag, count: 16)
         return ekFinal + cipher + tagFinal
     #else
         var error: Unmanaged<CFError>? = nil
         guard let eData = SecKeyCreateEncryptedData(key.nativeKey,
-                                                    key.algorithm.curve,
+                                                    key.curve.encryptionAlgorithm,
                                                     self as CFData,
                                                     &error)
         else {

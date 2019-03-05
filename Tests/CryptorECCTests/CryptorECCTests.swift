@@ -24,6 +24,7 @@ final class CryptorECCTests: XCTestCase {
             ("test_EncryptionCycle384", test_EncryptionCycle384),
             ("test_EncryptionCycle512", test_EncryptionCycle512),
             ("test_newPrivatekey", test_newPrivatekey),
+            ("test_ExtractPublicKey", test_ExtractPublicKey),
         ]
     
     let ecPemPrivateKey = """

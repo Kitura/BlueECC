@@ -45,8 +45,12 @@ import OpenSSL
  */
 @available(OSX 10.13, *)
 public class ECPrivateKey {
-    /// The Elliptic curve this key was generated from.
+    /// A String description of the curve this key was generated from.
     public let curveId: String
+    
+    /// The `EllipticCurve` this key was generated from.
+    public let curve: EllipticCurve
+    
     #if os(Linux)
         typealias NativeKey = OpaquePointer?
         deinit { EC_KEY_free(.make(optional: self.nativeKey)) }
@@ -54,7 +58,6 @@ public class ECPrivateKey {
         typealias NativeKey = SecKey
     #endif
     let nativeKey: NativeKey
-    let algorithm: ECAlgorithm
     let pubKeyBytes: Data
     private var stripped: Bool = false
 
@@ -69,12 +72,12 @@ public class ECPrivateKey {
      - Returns: An ECPrivateKey.
      - Throws: An ECError if the key fails to be created.
     */
-    public init(forCurve: Curve) throws {
-        self.algorithm = forCurve.algorithm
-        self.curveId = forCurve.algorithm.id.rawValue
+    public init(forCurve: EllipticCurve) throws {
+        self.curve = forCurve
+        self.curveId = curve.description
         self.stripped = true
         #if os(Linux)
-            let ec_key = EC_KEY_new_by_curve_name(forCurve.algorithm.curve)
+            let ec_key = EC_KEY_new_by_curve_name(forCurve.nativeCurve)
             EC_KEY_generate_key(ec_key)
             self.nativeKey = ec_key
             let pub_bn_ctx = BN_CTX_new()
@@ -83,9 +86,9 @@ public class ECPrivateKey {
             let ec_group = EC_KEY_get0_group(ec_key)
             let pub_bn = BN_new()
             EC_POINT_point2bn(ec_group, pub, POINT_CONVERSION_UNCOMPRESSED, pub_bn, pub_bn_ctx)
-            let pubk = UnsafeMutablePointer<UInt8>.allocate(capacity: forCurve.algorithm.keySize)
+            let pubk = UnsafeMutablePointer<UInt8>.allocate(capacity: forCurve.keySize)
             BN_bn2bin(pub_bn, pubk)
-            self.pubKeyBytes = Data(bytes: pubk, count: forCurve.algorithm.keySize)
+            self.pubKeyBytes = Data(bytes: pubk, count: forCurve.keySize)
             defer {
                 BN_CTX_end(pub_bn_ctx)
                 BN_CTX_free(pub_bn_ctx)
@@ -93,7 +96,7 @@ public class ECPrivateKey {
                 #if swift(>=4.1)
                 pubk.deallocate()
                 #else
-                pubk.deallocate(capacity: forCurve.algorithm.keySize)
+                pubk.deallocate(capacity: forCurve.keySize)
                 #endif
             }
         #else
@@ -189,8 +192,7 @@ public class ECPrivateKey {
         else {
             throw ECError.failedASN1Decoding
         }
-        self.algorithm = try ECAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID)
-        self.curveId = self.algorithm.id.rawValue
+        self.curve = try EllipticCurve.objectToCurve(ObjectIdentifier: privateKeyID)
         guard case let ASN1.ASN1Element.bytes(data: privateOctest) = es[2] else {
             throw ECError.failedASN1Decoding
         }
@@ -220,8 +222,9 @@ public class ECPrivateKey {
         }
         self.nativeKey =  try ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData,
                                                             publicKeyData: trimmedPubBytes,
-                                                            algorithm: algorithm)
+                                                            curve: curve)
         self.pubKeyBytes = trimmedPubBytes
+        self.curveId = curve.description
     }
 
     /// Initialize an ECPrivateKey from a SEC1 `.der` file data.  
@@ -240,8 +243,7 @@ public class ECPrivateKey {
         else {
             throw ECError.failedASN1Decoding
         }
-        self.algorithm = try ECAlgorithm.objectToHashAlg(ObjectIdentifier: objectId)
-        self.curveId = self.algorithm.id.rawValue
+        self.curve = try EllipticCurve.objectToCurve(ObjectIdentifier: objectId)
         guard case let ASN1.ASN1Element.constructed(tag: _, elem: publicElement) = seq[3],
             case let ASN1.ASN1Element.bytes(data: publicKeyData) = publicElement
         else {
@@ -253,8 +255,9 @@ public class ECPrivateKey {
         }
         self.nativeKey =  try ECPrivateKey.bytesToNativeKey(privateKeyData: privateKeyData,
                                                             publicKeyData: trimmedPubBytes,
-                                                            algorithm: algorithm)
+                                                            curve: curve)
         self.pubKeyBytes = trimmedPubBytes
+        self.curveId = curve.description
     }
     
     /// Initialize the `ECPublicKey`for this private key by extracting the public key bytes.
@@ -268,17 +271,17 @@ public class ECPrivateKey {
         //         OBJECT IDENTIFIER
         //         OBJECT IDENTIFIER
         //     BIT STRING (This is the `pubKeyBytes` added afterwards)
-        if self.algorithm.id == .prime256v1 {
+        if self.curve == .prime256v1 {
             keyHeader = Data(bytes: [0x30, 0x59,
                                      0x30, 0x13,
                                      0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
                                      0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x03, 0x42])
-        } else if self.algorithm.id == .secp384r1 {
+        } else if self.curve == .secp384r1 {
             keyHeader = Data(bytes: [0x30, 0x76,
                                      0x30, 0x10,
                                      0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
                                      0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x22, 0x03, 0x62])
-        } else if self.algorithm.id == .secp521r1 {
+        } else if self.curve == .secp521r1 {
             keyHeader = Data(bytes: [0x30, 0x81, 0x9B,
                                      0x30, 0x10,
                                      0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
@@ -295,7 +298,7 @@ public class ECPrivateKey {
     }
 
 
-    private static func bytesToNativeKey(privateKeyData: Data, publicKeyData: Data, algorithm: ECAlgorithm) throws -> NativeKey {
+    private static func bytesToNativeKey(privateKeyData: Data, publicKeyData: Data, curve: EllipticCurve) throws -> NativeKey {
         #if os(Linux)
             let bigNum = BN_new()
             defer {
@@ -304,7 +307,7 @@ public class ECPrivateKey {
             privateKeyData.withUnsafeBytes({ (privateKeyBytes: UnsafePointer<UInt8>) -> Void in
                 BN_bin2bn(privateKeyBytes, Int32(privateKeyData.count), bigNum)
             })
-            let ecKey = EC_KEY_new_by_curve_name(algorithm.curve)
+            let ecKey = EC_KEY_new_by_curve_name(curve.nativeCurve)
             guard EC_KEY_set_private_key(ecKey, bigNum) == 1 else {
                 EC_KEY_free(ecKey)
                 throw ECError.failedNativeKeyCreation
