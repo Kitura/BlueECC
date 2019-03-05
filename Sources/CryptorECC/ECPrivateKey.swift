@@ -45,8 +45,13 @@ import OpenSSL
  */
 @available(OSX 10.13, *)
 public class ECPrivateKey {
+    /// A String description of the curve this key was generated from.
+    public var curveId: String {
+        return curve.description
+    }
     /// The Elliptic curve this key was generated from.
-    public let curve: Curve
+    public let curve: EllipticCurve
+    
     #if os(Linux)
         typealias NativeKey = OpaquePointer?
         deinit { EC_KEY_free(.make(optional: self.nativeKey)) }
@@ -118,7 +123,7 @@ public class ECPrivateKey {
         else {
             throw ECError.failedASN1Decoding
         }
-        self.curve = try Curve.objectToCurve(ObjectIdentifier: privateKeyID)
+        self.curve = try EllipticCurve.objectToCurve(ObjectIdentifier: privateKeyID)
         guard case let ASN1.ASN1Element.bytes(data: privateOctest) = es[2] else {
             throw ECError.failedASN1Decoding
         }
@@ -165,7 +170,7 @@ public class ECPrivateKey {
         else {
             throw ECError.failedASN1Decoding
         }
-        self.curve = try Curve.objectToCurve(ObjectIdentifier: objectId)
+        self.curve = try EllipticCurve.objectToCurve(ObjectIdentifier: objectId)
         guard case let ASN1.ASN1Element.constructed(tag: _, elem: publicElement) = seq[3],
             case let ASN1.ASN1Element.bytes(data: publicKeyData) = publicElement
         else {
@@ -216,7 +221,7 @@ public class ECPrivateKey {
     }
 
 
-    private static func bytesToNativeKey(privateKeyData: Data, publicKeyData: Data, curve: Curve) throws -> NativeKey {
+    private static func bytesToNativeKey(privateKeyData: Data, publicKeyData: Data, curve: EllipticCurve) throws -> NativeKey {
         #if os(Linux)
             let bigNum = BN_new()
             defer {

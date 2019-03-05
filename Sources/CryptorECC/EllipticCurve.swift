@@ -23,7 +23,7 @@ import Foundation
 
 /// An extensible list of elliptic curves supported by this repository.
 @available(OSX 10.13, *)
-public struct Curve: Equatable, CustomStringConvertible {
+public struct EllipticCurve: Equatable, CustomStringConvertible {
     
     private let internalRepresentation: InternalRepresentation
     
@@ -33,16 +33,16 @@ public struct Curve: Equatable, CustomStringConvertible {
     }
     
     /// A prime256v1 curve.
-    public static let prime256v1 = Curve.p256
+    public static let prime256v1 = EllipticCurve.p256
     
     /// A secp384r1 curve.
-    public static let secp384r1 = Curve.p384
+    public static let secp384r1 = EllipticCurve.p384
     
     /// A secp521r1 curve.
-    public static let secp521r1 = Curve.p521
+    public static let secp521r1 = EllipticCurve.p521
     
     /// Checks if two Curves are equal, required for Equatable protocol.
-    public static func == (lhs: Curve, rhs: Curve) -> Bool {
+    public static func == (lhs: EllipticCurve, rhs: EllipticCurve) -> Bool {
         return lhs.internalRepresentation == rhs.internalRepresentation
     }
     
@@ -67,51 +67,47 @@ public struct Curve: Equatable, CustomStringConvertible {
     
     #if os(Linux)
     /// Secure Hash Algorithm 2 256-bit
-    static let p256 = Curve(internalRepresentation: .prime256v1,
-                            signingAlgorithm: .init(EVP_sha256()),
-                            nativeCurve: NID_X9_62_prime256v1,
-                            keySize: 65)
+    static let p256 = EllipticCurve(internalRepresentation: .prime256v1,
+                                    signingAlgorithm: .init(EVP_sha256()),
+                                    nativeCurve: NID_X9_62_prime256v1,
+                                    keySize: 65)
+    
+    /// Secure Hash Algorithm 2 384-bit
+    static let p384 = EllipticCurve(internalRepresentation: .secp384r1,
+                                    signingAlgorithm: .init(EVP_sha384()),
+                                    nativeCurve: NID_secp384r1,
+                                    keySize: 97)
+    
+    /// Secure Hash Algorithm 512-bit
+    static let p521 = EllipticCurve(internalRepresentation: .secp521r1,
+                                    signingAlgorithm: .init(EVP_sha512()),
+                                    nativeCurve: NID_secp521r1,
+                                    keySize: 133)
     #else
     /// Secure Hash Algorithm 2 256-bit
-    static let p256 = Curve(internalRepresentation: .prime256v1,
-                            signingAlgorithm: .ecdsaSignatureDigestX962SHA256,
-                            hashEngine: CC_SHA256,
-                            hashLength: CC_LONG(CC_SHA256_DIGEST_LENGTH),
-                            keySize: 65)
-    #endif
+    static let p256 = EllipticCurve(internalRepresentation: .prime256v1,
+                                    signingAlgorithm: .ecdsaSignatureDigestX962SHA256,
+                                    hashEngine: CC_SHA256,
+                                    hashLength: CC_LONG(CC_SHA256_DIGEST_LENGTH),
+                                    keySize: 65)
     
-    #if os(Linux)
     /// Secure Hash Algorithm 2 384-bit
-    static let p384 = Curve(internalRepresentation: .secp384r1,
-                            signingAlgorithm: .init(EVP_sha384()),
-                            nativeCurve: NID_secp384r1,
-                            keySize: 97)
-    #else
-    /// Secure Hash Algorithm 2 384-bit
-    static let p384 = Curve(internalRepresentation: .secp384r1,
-                            signingAlgorithm: .ecdsaSignatureDigestX962SHA384,
-                            hashEngine: CC_SHA384,
-                            hashLength: CC_LONG(CC_SHA384_DIGEST_LENGTH),
-                            keySize: 97)
-    #endif
+    static let p384 = EllipticCurve(internalRepresentation: .secp384r1,
+                                    signingAlgorithm: .ecdsaSignatureDigestX962SHA384,
+                                    hashEngine: CC_SHA384,
+                                    hashLength: CC_LONG(CC_SHA384_DIGEST_LENGTH),
+                                    keySize: 97)
     
-    #if os(Linux)
     /// Secure Hash Algorithm 512-bit
-    static let p521 = Curve(internalRepresentation: .secp521r1,
-                            signingAlgorithm: .init(EVP_sha512()),
-                            nativeCurve: NID_secp521r1,
-                            keySize: 133)
-    #else
-    /// Secure Hash Algorithm 512-bit
-    static let p521 = Curve(internalRepresentation: .secp521r1,
-                            signingAlgorithm: .ecdsaSignatureDigestX962SHA512,
-                            hashEngine: CC_SHA512,
-                            hashLength: CC_LONG(CC_SHA512_DIGEST_LENGTH),
-                            keySize: 133)
+    static let p521 = EllipticCurve(internalRepresentation: .secp521r1,
+                                    signingAlgorithm: .ecdsaSignatureDigestX962SHA512,
+                                    hashEngine: CC_SHA512,
+                                    hashLength: CC_LONG(CC_SHA512_DIGEST_LENGTH),
+                                    keySize: 133)
     #endif
     
     // Select the ECAlgorithm based on the object identifier (OID) extracted from the EC key.
-    static func objectToCurve(ObjectIdentifier: Data) throws -> Curve {
+    static func objectToCurve(ObjectIdentifier: Data) throws -> EllipticCurve {
         
         if [UInt8](ObjectIdentifier) == [0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07] {
             // p-256 (e.g: prime256v1, secp256r1) private key

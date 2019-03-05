@@ -47,8 +47,13 @@ import OpenSSL
  */
 @available(OSX 10.13, *)
 public class ECPublicKey {
+    /// A String description of the curve this key was generated from.
+    public var curveId: String {
+        return curve.description
+    }
+    
     /// The Elliptic curve this key was generated from.
-    public let curve: Curve
+    public let curve: EllipticCurve
     #if os(Linux)
     typealias NativeKey = OpaquePointer?
     let pubKeyBytes: Data
@@ -111,7 +116,7 @@ public class ECPublicKey {
         else {
             throw ECError.failedASN1Decoding
         }
-        self.curve = try Curve.objectToCurve(ObjectIdentifier: privateKeyID)
+        self.curve = try EllipticCurve.objectToCurve(ObjectIdentifier: privateKeyID)
         let keyData = publicKeyData.drop(while: { $0 == 0x00})
         #if os(Linux)
             self.pubKeyBytes = keyData
