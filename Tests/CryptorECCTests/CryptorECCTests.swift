@@ -23,6 +23,7 @@ final class CryptorECCTests: XCTestCase {
             ("test_LinuxEncrypted", test_LinuxEncrypted),
             ("test_EncryptionCycle384", test_EncryptionCycle384),
             ("test_EncryptionCycle512", test_EncryptionCycle512),
+            ("test_ExtractPublicKey", test_ExtractPublicKey),
         ]
     
     let ecPemPrivateKey = """

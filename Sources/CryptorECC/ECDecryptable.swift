@@ -37,7 +37,7 @@ extension Data {
         EVP_CIPHER_CTX_init_wrapper(rsaDecryptCtx)
         
         let tagLength = 16
-        let encKeyLength = key.algorithm.keySize
+        let encKeyLength = key.curve.keySize
         let encryptedDataLength = Int(self.count) - encKeyLength - tagLength
         // Extract encryptedAESKey, encryptedData, GCM tag from data
         let encryptedKey = self.subdata(in: 0..<encKeyLength)
@@ -87,7 +87,7 @@ extension Data {
         let symKeyData = Data(bytes: symKey, count: skey_len)
         let counterData = Data(bytes: [0x00, 0x00, 0x00, 0x01])
         let preHashKey = symKeyData + counterData + encryptedKey
-        let hashedKey = key.algorithm.digest(data: preHashKey)
+        let hashedKey = key.curve.digest(data: preHashKey)
         let aesKey = [UInt8](hashedKey.subdata(in: 0 ..< 16))
         let iv = [UInt8](hashedKey.subdata(in: 16 ..< 32))
         
@@ -131,7 +131,7 @@ extension Data {
     #else
         var error: Unmanaged<CFError>? = nil
         guard let eData = SecKeyCreateDecryptedData(key.nativeKey,
-                                                    key.algorithm.curve,
+                                                    key.curve.encryptionAlgorithm,
                                                     self as CFData,
                                                     &error)
         else {

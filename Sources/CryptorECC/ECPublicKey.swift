@@ -48,7 +48,7 @@ import OpenSSL
 @available(OSX 10.13, *)
 public class ECPublicKey {
     /// The Elliptic curve this key was generated from.
-    public let curveId: String
+    public let curve: Curve
     #if os(Linux)
     typealias NativeKey = OpaquePointer?
     let pubKeyBytes: Data
@@ -57,7 +57,6 @@ public class ECPublicKey {
     typealias NativeKey = SecKey
     #endif
     let nativeKey: NativeKey
-    let algorithm: ECAlgorithm
     
     /// The public key represented as a PEM String.
     public let pemString: String
@@ -112,8 +111,7 @@ public class ECPublicKey {
         else {
             throw ECError.failedASN1Decoding
         }
-        self.algorithm = try ECAlgorithm.objectToHashAlg(ObjectIdentifier: privateKeyID)
-        self.curveId = self.algorithm.id.rawValue
+        self.curve = try Curve.objectToCurve(ObjectIdentifier: privateKeyID)
         let keyData = publicKeyData.drop(while: { $0 == 0x00})
         #if os(Linux)
             self.pubKeyBytes = keyData
@@ -124,7 +122,7 @@ public class ECPublicKey {
             publicKeyData.withUnsafeBytes({ (pubKeyBytes: UnsafePointer<UInt8>) -> Void in
                 BN_bin2bn(pubKeyBytes, Int32(publicKeyData.count), bigNum)
             })
-            let ecKey = EC_KEY_new_by_curve_name(algorithm.curve)
+            let ecKey = EC_KEY_new_by_curve_name(curve.nativeCurve)
             let ecGroup = EC_KEY_get0_group(ecKey)
             let ecPoint = EC_POINT_new(ecGroup)
             defer {
