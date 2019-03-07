@@ -315,8 +315,8 @@ public class ECPrivateKey {
                 pemSize = 673
             }
             let pem = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(pemSize))
-            print(BIO_read(pemBio, pem, pemSize))
-            let pemData = Data(bytes: pem, count: Int(pemSize))
+            let readLength = BIO_read(pemBio, pem, pemSize)
+            let pemData = Data(bytes: pem, count: Int(readLength))
             #if swift(>=4.1)
             pem.deallocate()
             #else
