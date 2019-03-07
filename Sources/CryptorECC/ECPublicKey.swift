@@ -62,7 +62,7 @@ public class ECPublicKey {
     let nativeKey: NativeKey
     
     /// The public key represented as a PEM String.
-    let pemString: String
+    public let pemString: String
     
     /**
      Initialize an ECPublicKey from a `.pem` file format.
@@ -153,11 +153,6 @@ public class ECPublicKey {
             }
             self.nativeKey = secKey
         #endif
-    }
-    
-    /// Get the public key represented as a PEM String.
-    public func decodeToPEM() -> String {
-        return pemString
     }
     
     private static func derToPEMString(derData: Data) -> String {

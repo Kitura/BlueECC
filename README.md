@@ -54,9 +54,26 @@ import CryptorECC
 
 #### Elliptic curve private key
 
-Generate your elliptic curve private key using a third party provider:
+you can generate an ECPrivate key using BlueECC.
 
-You can generate a `p-256` private key as a `.p8` file for Apple services from [https://developer.apple.com/account/ios/authkey](https://developer.apple.com/account/ios/authkey/). This will produce a key that should be formatted as follows:
+```swift
+let p256PrivateKey = try ECPrivateKey(for: .prime256v1)
+```
+
+You can then view this key by decoding it to the PEM format:
+
+```swift
+let privateKeyPEM = try p256PrivateKey.decodeToPEM()
+```
+
+The following curves are supported:
+- prime256v1
+- secp384r1
+- secp521r1
+
+Alternatively, you may generate private key using a third party provider:
+
+- You can generate a `p-256` private key as a `.p8` file for Apple services from [https://developer.apple.com/account/ios/authkey](https://developer.apple.com/account/ios/authkey/). This will produce a key that should be formatted as follows:
 ```swift
 let privateKey =
 """
@@ -68,12 +85,7 @@ PyniQCWG+Agc3bdcgKU0RKApWYuBJKrZqyqLB2tTlgdtwcWSB0AEzVI8
 """
 ```
 
-Alternatively, you can use OpenSSL [Command Line Elliptic Curve Operations](https://wiki.openssl.org/index.php/Command_Line_Elliptic_Curve_Operations).  
-OpenSSL can be installed via brew:
-
-```
-$ brew install openssl
-```
+- You can use OpenSSL [Command Line Elliptic Curve Operations](https://wiki.openssl.org/index.php/Command_Line_Elliptic_Curve_Operations).  
 
 The following commands generate private keys for the three supported curves as `.pem` files:
 ```
@@ -96,7 +108,7 @@ KVmLgSSq2asqiwdrU5YHbcHFkgdABM1SPA==
 """
 ```
 
-The key can then be used to initialize an `ECPrivateKey` instance:
+The key string can then be used to initialize an `ECPrivateKey` instance:
 ```swift
 let eccPrivateKey = try ECPrivateKey(key: privateKey)
 ```
