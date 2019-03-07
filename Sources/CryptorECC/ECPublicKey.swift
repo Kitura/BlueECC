@@ -103,7 +103,7 @@ public class ECPublicKey {
     /// - Returns: An ECPublicKey.
     /// - Throws: An ECError if the Data can't be decoded or is not a valid key.
     public init(der: Data) throws {
-        pemString = ECPublicKey.derToPEMString(derData: der)
+        pemString = ECPublicKey.derToPublicPEM(derData: der)
         let (result, _) = ASN1.toASN1Element(data: der)
         guard case let ASN1.ASN1Element.seq(elements: seq) = result,
             seq.count > 1,
@@ -155,7 +155,7 @@ public class ECPublicKey {
         #endif
     }
     
-    private static func derToPEMString(derData: Data) -> String {
+    private static func derToPublicPEM(derData: Data) -> String {
         // First convert the DER data to a base64 string...
         let base64String = derData.base64EncodedString()
         // Split the string into strings of length 65...

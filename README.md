@@ -115,7 +115,7 @@ let eccPrivateKey = try ECPrivateKey(key: privateKey)
 
 ####  Elliptic curve public  key
 
-Use OpenSSL to generate an elliptic curve public key `.pem` file from any of the above elliptic curve private key files:
+You can use OpenSSL to generate an elliptic curve public key `.pem` file from any of the above elliptic curve private key files:
 ```
 $ openssl ec -in key.pem -pubout -out public.pem
 ```

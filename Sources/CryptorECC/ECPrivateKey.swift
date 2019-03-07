@@ -66,7 +66,7 @@ public class ECPrivateKey {
      Initialise an new ECPrivate key from a supported `Curve`
      ### Usage Example:
      ```swift
-     let key = try ECPrivateKey(forCurve: .prime256v1)
+     let key = try ECPrivateKey(for: .prime256v1)
      ```
      - Parameter for curve: The elliptic curve that is used to generate the key.
      - Returns: An ECPrivateKey.
@@ -77,7 +77,7 @@ public class ECPrivateKey {
         self.curveId = curve.description
         self.stripped = true
         #if os(Linux)
-            let ec_key = EC_KEY_new_by_curve_name(forCurve.nativeCurve)
+            let ec_key = EC_KEY_new_by_curve_name(curve.nativeCurve)
             EC_KEY_generate_key(ec_key)
             self.nativeKey = ec_key
             let pub_bn_ctx = BN_CTX_new()
@@ -86,9 +86,9 @@ public class ECPrivateKey {
             let ec_group = EC_KEY_get0_group(ec_key)
             let pub_bn = BN_new()
             EC_POINT_point2bn(ec_group, pub, POINT_CONVERSION_UNCOMPRESSED, pub_bn, pub_bn_ctx)
-            let pubk = UnsafeMutablePointer<UInt8>.allocate(capacity: forCurve.keySize)
+            let pubk = UnsafeMutablePointer<UInt8>.allocate(capacity: curve.keySize)
             BN_bn2bin(pub_bn, pubk)
-            self.pubKeyBytes = Data(bytes: pubk, count: forCurve.keySize)
+            self.pubKeyBytes = Data(bytes: pubk, count: curve.keySize)
             defer {
                 BN_CTX_end(pub_bn_ctx)
                 BN_CTX_free(pub_bn_ctx)
@@ -96,7 +96,7 @@ public class ECPrivateKey {
                 #if swift(>=4.1)
                 pubk.deallocate()
                 #else
-                pubk.deallocate(capacity: forCurve.keySize)
+                pubk.deallocate(capacity: curve.keySize)
                 #endif
             }
         #else
@@ -288,16 +288,13 @@ public class ECPrivateKey {
             let pemBio = BIO_new(BIO_s_mem())
             defer { BIO_free(pemBio) }
             PEM_write_bio_ECPrivateKey(pemBio, nativeKey, nil, nil, 0, nil, nil)
-            // The return value of PEM_write_bio_ECPrivateKey is supposed to be the PEM size.
-            // However it is just returning 1 for success.
-            // Since the size is fixed we have just used the known values here.
             let pemSize: Int32
             if curve == .prime256v1 {
                 pemSize = 555
             } else if curve == .secp384r1 {
                 pemSize = 750
             } else {
-                pemSize = 992
+                pemSize = 975
             }
             let pem = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(pemSize))
             BIO_read(pemBio, pem, pemSize)
@@ -383,7 +380,7 @@ public class ECPrivateKey {
         } else {
             throw ECError.unsupportedCurve
         }
-        return ECPrivateKey.derToPEMString(derData: keyHeader)
+        return ECPrivateKey.derToPrivatePEM(derData: keyHeader)
     }
 
     private static func bytesToNativeKey(privateKeyData: Data, publicKeyData: Data, curve: EllipticCurve) throws -> NativeKey {
@@ -419,7 +416,7 @@ public class ECPrivateKey {
         #endif
     }
     
-    private static func derToPEMString(derData: Data) -> String {
+    private static func derToPrivatePEM(derData: Data) -> String {
         // First convert the DER data to a base64 string...
         let base64String = derData.base64EncodedString()
         // Split the string into strings of length 65...
