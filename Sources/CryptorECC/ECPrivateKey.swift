@@ -68,12 +68,12 @@ public class ECPrivateKey {
      ```swift
      let key = try ECPrivateKey(forCurve: .prime256v1)
      ```
-     - Parameter forCurve: The elliptic curve that is used to generate the key.
+     - Parameter for curve: The elliptic curve that is used to generate the key.
      - Returns: An ECPrivateKey.
      - Throws: An ECError if the key fails to be created.
     */
-    public init(forCurve: EllipticCurve) throws {
-        self.curve = forCurve
+    public init(for curve: EllipticCurve) throws {
+        self.curve = curve
         self.curveId = curve.description
         self.stripped = true
         #if os(Linux)
@@ -102,9 +102,9 @@ public class ECPrivateKey {
         #else
             let kAsymmetricCryptoManagerKeyType = kSecAttrKeyTypeECSECPrimeRandom
             let kAsymmetricCryptoManagerKeySize: Int
-            if forCurve == .prime256v1 {
+            if curve == .prime256v1 {
                 kAsymmetricCryptoManagerKeySize = 256
-            } else if forCurve == .secp384r1 {
+            } else if curve == .secp384r1 {
                 kAsymmetricCryptoManagerKeySize = 384
             } else {
                 kAsymmetricCryptoManagerKeySize = 521
@@ -151,25 +151,10 @@ public class ECPrivateKey {
      - Throws: An ECError if the PEM string can't be decoded or is not a valid key.
      */
     public convenience init(key: String) throws {
-        // Strip whitespace characters
-        let strippedKey = String(key.filter { !" \n\t\r".contains($0) })
-        var pemComponents = strippedKey.components(separatedBy: "-----")
-        guard pemComponents.count >= 5 else {
-            throw ECError.invalidPEMString
-        }
-        // Remove any EC parameters since Curve is determined by OID
-        if pemComponents[1]  == "BEGINECPARAMETERS" {
-            pemComponents.removeFirst(5)
-            guard pemComponents.count >= 5 else {
-                throw ECError.invalidPEMString
-            }
-        }
-        guard let der = Data(base64Encoded: pemComponents[2]) else {
-            throw ECError.failedBase64Encoding
-        }
-        if pemComponents[1] == "BEGINECPRIVATEKEY" {
+        let (der, header) = try ECPrivateKey.pemToDERData(key: key)
+        if header == "BEGINECPRIVATEKEY" {
             try self.init(sec1DER: der)
-        } else if pemComponents[1] == "BEGINPRIVATEKEY" {
+        } else if header == "BEGINPRIVATEKEY" {
             try self.init(pkcs8DER: der)
         } else {
             throw ECError.unknownPEMHeader
@@ -296,7 +281,110 @@ public class ECPrivateKey {
         }
         return try ECPublicKey(der: keyHeader + pubBytes)
     }
-
+    
+    /// Decode this ECPrivateKey to it's PEM format
+    public func decodeToPEM() throws -> String {
+        #if os(Linux)
+            let pemBio = BIO_new(BIO_s_mem())
+            defer { BIO_free(pemBio) }
+            PEM_write_bio_ECPrivateKey(pemBio, nativeKey, nil, nil, 0, nil, nil)
+            // The return value of PEM_write_bio_ECPrivateKey is supposed to be the PEM size.
+            // However it is just returning 1 for success.
+            // Since the size is fixed we have just used the known values here.
+            let pemSize: Int32
+            if curve == .prime256v1 {
+                pemSize = 555
+            } else if curve == .secp384r1 {
+                pemSize = 750
+            } else {
+                pemSize = 992
+            }
+            let pem = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(pemSize))
+            BIO_read(pemBio, pem, pemSize)
+            let pemData = Data(bytes: pem, count: Int(pemSize))
+            #if swift(>=4.1)
+            pem.deallocate()
+            #else
+            pem.deallocate(capacity: Int(pemSize))
+            #endif
+            guard let pemString = String(data: pemData, encoding: .utf8) else {
+                throw ECError.failedUTF8Decoding
+            }
+            // The PEM String returned by OpenSSL contains lots of empty unused fields.
+            // We just pull out the public and private key that we are interested in.
+            let (der, _) = try ECPrivateKey.pemToDERData(key: pemString)
+            let (result, _) = ASN1.toASN1Element(data: der)
+            guard case let ASN1.ASN1Element.seq(elements: seq) = result,
+                seq.count > 3,
+                case let ASN1.ASN1Element.bytes(data: privateKeyData) = seq[1]
+                else {
+                    throw ECError.failedASN1Decoding
+            }
+            guard case let ASN1.ASN1Element.constructed(tag: _, elem: publicElement) = seq[3],
+                case let ASN1.ASN1Element.bytes(data: publicKeyData) = publicElement
+                else {
+                    throw ECError.failedASN1Decoding
+            }
+        #else
+            var error: Unmanaged<CFError>? = nil
+        /*
+         From Apple docs:
+         For an elliptic curve private key, `SecKeyCopyExternalRepresentation` output is formatted as the public key concatenated with the big endian encoding of the secret scalar, or 04 || X || Y || K.
+         */
+            guard let keyBytes = SecKeyCopyExternalRepresentation(nativeKey, &error) else {
+                guard let error = error?.takeRetainedValue() else {
+                    throw ECError.failedNativeKeyCreation
+                }
+                throw error
+            }
+            let keyData = keyBytes as Data
+            let privateKeyData = keyData.dropFirst(curve.keySize)
+            let publicKeyData = Data(bytes: [0x00]) + keyData.dropLast(keyData.count - curve.keySize)
+        #endif
+        var keyHeader: Data
+        // Add the ASN1 header for the private key. The bytes have the following structure:
+        // SEQUENCE (4 elem)
+        //     INTEGER 1
+        //     OCTET STRING (32 byte) (This is the `privateKeyBytes`)
+        //     [0] (1 elem)
+        //         OBJECT IDENTIFIER
+        //     [1] (1 elem)
+        //         BIT STRING (This is the `pubKeyBytes`)
+        if self.curve == .prime256v1 {
+            keyHeader = Data(bytes: [0x30, 0x77,
+                                     0x02, 0x01, 0x01,
+                                     0x04, 0x20])
+            keyHeader += privateKeyData
+            keyHeader += Data(bytes: [0xA0,
+                                      0x0A, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07,
+                                      0xA1,
+                                      0x44, 0x03, 0x42])
+            keyHeader += publicKeyData
+        } else if self.curve == .secp384r1 {
+            keyHeader = Data(bytes: [0x30, 0x81, 0xA4,
+                                     0x02, 0x01, 0x01,
+                                     0x04, 0x30])
+            keyHeader += privateKeyData
+            keyHeader += Data(bytes: [0xA0,
+                                      0x07, 0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x22,
+                                      0xA1,
+                                      0x64, 0x03, 0x62])
+            keyHeader += publicKeyData
+        } else if self.curve == .secp521r1 {
+            keyHeader = Data(bytes: [0x30, 0x81, 0xDC,
+                                     0x02, 0x01, 0x01,
+                                     0x04, 0x42])
+            keyHeader += privateKeyData
+            keyHeader += Data(bytes: [0xA0,
+                                      0x07, 0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x23,
+                                      0xA1,
+                                      0x81, 0x89, 0x03, 0x81, 0x86])
+            keyHeader += publicKeyData
+        } else {
+            throw ECError.unsupportedCurve
+        }
+        return ECPrivateKey.derToPEMString(derData: keyHeader)
+    }
 
     private static func bytesToNativeKey(privateKeyData: Data, publicKeyData: Data, curve: EllipticCurve) throws -> NativeKey {
         #if os(Linux)
@@ -329,5 +417,35 @@ public class ECPrivateKey {
             }
             return secKey
         #endif
+    }
+    
+    private static func derToPEMString(derData: Data) -> String {
+        // First convert the DER data to a base64 string...
+        let base64String = derData.base64EncodedString()
+        // Split the string into strings of length 65...
+        let lines = base64String.split(to: 64)
+        // Join those lines with a new line...
+        let joinedLines = lines.joined(separator: "\n")
+        return "-----BEGIN EC PRIVATE KEY-----\n" + joinedLines + "\n-----END EC PRIVATE KEY-----"
+    }
+    
+    private static func pemToDERData(key: String) throws  -> (Data, String) {
+        // Strip whitespace characters
+        let strippedKey = String(key.filter { !" \n\t\r".contains($0) })
+        var pemComponents = strippedKey.components(separatedBy: "-----")
+        guard pemComponents.count >= 5 else {
+            throw ECError.invalidPEMString
+        }
+        // Remove any EC parameters since Curve is determined by OID
+        if pemComponents[1]  == "BEGINECPARAMETERS" {
+            pemComponents.removeFirst(5)
+            guard pemComponents.count >= 5 else {
+                throw ECError.invalidPEMString
+            }
+        }
+        guard let der = Data(base64Encoded: pemComponents[2]) else {
+            throw ECError.failedBase64Encoding
+        }
+        return (der, pemComponents[1])
     }
 }
