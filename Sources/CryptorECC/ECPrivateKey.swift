@@ -287,25 +287,20 @@ public class ECPrivateKey {
         #if os(Linux)
             let pemBio = BIO_new(BIO_s_mem())
             defer { BIO_free(pemBio) }
-            let writeResult = PEM_write_bio_ECPrivateKey(pemBio, nativeKey, nil, nil, 0, nil, nil)
+            PEM_write_bio_ECPrivateKey(pemBio, nativeKey, nil, nil, 0, nil, nil)
             // The return value of PEM_write_bio_ECPrivateKey is supposed to be the PEM size.
             // However it is just returning 1 for success.
             // Since the size is fixed we have just used the known values here.
             let pemSize: Int32
-            print(writeResult)
-            if writeResult == 1 {
-                if curve == .prime256v1 {
-                    pemSize = 555
-                } else if curve == .secp384r1 {
-                    pemSize = 750
-                } else {
-                    pemSize = 975
-                }
+            if curve == .prime256v1 {
+                pemSize = 555
+            } else if curve == .secp384r1 {
+                pemSize = 750
             } else {
-                pemSize = Int32(writeResult)
+                pemSize = 975
             }
             let pem = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(pemSize))
-            BIO_read(pemBio, pem, pemSize)
+            print(BIO_read(pemBio, pem, pemSize))
             let pemData = Data(bytes: pem, count: Int(pemSize))
             #if swift(>=4.1)
             pem.deallocate()
