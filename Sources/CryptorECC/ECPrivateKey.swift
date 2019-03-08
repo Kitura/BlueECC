@@ -300,31 +300,33 @@ public class ECPrivateKey {
     /// Decode this ECPrivateKey to it's PEM format
     public func decodeToPEM() throws -> String {
         #if os(Linux)
-            let pemBio = BIO_new(BIO_s_mem())
-            defer { BIO_free_all(pemBio) }
+            let asn1Bio = BIO_new(BIO_s_mem())
+            defer { BIO_free_all(asn1Bio) }
             // The return value of i2d_ECPrivateKey_bio is supposed to be the DER size.
             // However it is just returning 1 for success.
             // Since the size is fixed we have just used the known values here.
-            guard i2d_ECPrivateKey_bio(pemBio, nativeKey) >= 0 else {
+            guard i2d_ECPrivateKey_bio(asn1Bio, nativeKey) >= 0 else {
                 throw ECError.failedNativeKeyCreation
             }
-            let pemSize: Int32
+            let asn1Size: Int32
             if curve == .prime256v1 {
-                pemSize = 364
+                asn1Size = 364
             } else if curve == .secp384r1 {
-                pemSize = 510
+                asn1Size = 510
             } else {
-                pemSize = 673
+                asn1Size = 673
             }
-            let pem = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(pemSize))
-            let readLength = BIO_read(pemBio, pem, pemSize)
-            let pemData = Data(bytes: pem, count: Int(readLength))
+            let asn1 = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(asn1Size))
+            let readLength = BIO_read(asn1Bio, asn1, asn1Size)
+            print("readLength: \(readLength)")
+            let asn1Data = Data(bytes: asn1, count: Int(readLength))
+            print("OriginalASN1: \(asn1Data.base64EncodedString())")
             #if swift(>=4.1)
-            pem.deallocate()
+            asn1.deallocate()
             #else
-            pem.deallocate(capacity: Int(pemSize))
+            asn1.deallocate(capacity: Int(asn1Size))
             #endif
-            let (result, _) = ASN1.toASN1Element(data: pemData)
+            let (result, _) = ASN1.toASN1Element(data: asn1Data)
             guard case let ASN1.ASN1Element.seq(elements: seq) = result,
                 seq.count > 3,
                 case var ASN1.ASN1Element.bytes(data: privateKeyData) = seq[1]
@@ -338,7 +340,8 @@ public class ECPrivateKey {
             }
             // 521 Private key can be 65 or 66 bytes long
             // If they are 65 we add a buffer byte to the front
-            if readLength < pemSize {
+            if readLength < asn1Size {
+                print("Short Key")
                 privateKeyData = Data(bytes: [0x00]) + privateKeyData
             }
         #else
@@ -396,6 +399,7 @@ public class ECPrivateKey {
                                       0xA1,
                                       0x81, 0x89, 0x03, 0x81, 0x86])
             keyHeader += publicKeyData
+            print("ShortenedHeader: \(keyHeader.base64EncodedString())")
         } else {
             throw ECError.unsupportedCurve
         }
