@@ -318,24 +318,16 @@ public class ECPrivateKey {
             }
             let pem = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(pemSize))
             let readLength = BIO_read(pemBio, pem, pemSize)
-            print("readLength: \(readLength)")
             let pemData = Data(bytes: pem, count: Int(readLength))
-            print(pemData.base64EncodedString())
             #if swift(>=4.1)
             pem.deallocate()
             #else
             pem.deallocate(capacity: Int(pemSize))
             #endif
-//            guard let pemString = String(data: pemData, encoding: .utf8) else {
-//                throw ECError.failedUTF8Decoding
-//            }
-            // The PEM String returned by OpenSSL contains lots of empty unused fields.
-            // We just pull out the public and private key that we are interested in.
-            //let (der, _) = try ECPrivateKey.pemToDERData(key: pemString)
             let (result, _) = ASN1.toASN1Element(data: pemData)
             guard case let ASN1.ASN1Element.seq(elements: seq) = result,
                 seq.count > 3,
-                case let ASN1.ASN1Element.bytes(data: privateKeyData) = seq[1]
+                case var ASN1.ASN1Element.bytes(data: privateKeyData) = seq[1]
                 else {
                     throw ECError.failedASN1Decoding
             }
@@ -343,6 +335,11 @@ public class ECPrivateKey {
                 case let ASN1.ASN1Element.bytes(data: publicKeyData) = publicElement
                 else {
                     throw ECError.failedASN1Decoding
+            }
+            // 521 Private key can be 65 or 66 bytes long
+            // If they are 65 we add a buffer byte to the front
+            if readLength < pemSize {
+                privateKeyData = Data(bytes: [0x00]) + privateKeyData
             }
         #else
             var error: Unmanaged<CFError>? = nil
