@@ -12,12 +12,13 @@
 //     See the License for the specific language governing permissions and
 //     limitations under the License.
 //
-
 import Foundation
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 import CommonCrypto
+import Darwin
 #elseif os(Linux)
 import OpenSSL
+import Glibc
 #endif
 
 
@@ -318,7 +319,9 @@ public class ECPrivateKey {
             }
             let asn1 = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(asn1Size))
             let readLength = BIO_read(asn1Bio, asn1, asn1Size)
+            fputs("readLength: \(readLength)", stderr)
             let asn1Data = Data(bytes: asn1, count: Int(readLength))
+            fputs("asn1Data: \(asn1Data.base64EncodedString())", stderr)
             #if swift(>=4.1)
             asn1.deallocate()
             #else
@@ -344,6 +347,7 @@ public class ECPrivateKey {
             } else {
                 shortKey = false
             }
+            fputs("shortKey: \(shortKey)", stderr)
         #else
             var error: Unmanaged<CFError>? = nil
         /*
@@ -415,6 +419,7 @@ public class ECPrivateKey {
         } else {
             throw ECError.unsupportedCurve
         }
+        fputs("keyHeader: \(keyHeader.base64EncodedString())", stderr)
         return ECPrivateKey.derToPrivatePEM(derData: keyHeader)
     }
 
