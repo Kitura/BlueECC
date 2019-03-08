@@ -318,9 +318,7 @@ public class ECPrivateKey {
             }
             let asn1 = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(asn1Size))
             let readLength = BIO_read(asn1Bio, asn1, asn1Size)
-            print("readLength: \(readLength)")
             let asn1Data = Data(bytes: asn1, count: Int(readLength))
-            print("OriginalASN1: \(asn1Data.base64EncodedString())")
             #if swift(>=4.1)
             asn1.deallocate()
             #else
@@ -329,7 +327,7 @@ public class ECPrivateKey {
             let (result, _) = ASN1.toASN1Element(data: asn1Data)
             guard case let ASN1.ASN1Element.seq(elements: seq) = result,
                 seq.count > 3,
-                case var ASN1.ASN1Element.bytes(data: privateKeyData) = seq[1]
+                case let ASN1.ASN1Element.bytes(data: privateKeyData) = seq[1]
                 else {
                     throw ECError.failedASN1Decoding
             }
@@ -340,9 +338,11 @@ public class ECPrivateKey {
             }
             // 521 Private key can be 65 or 66 bytes long
             // If they are 65 we add a buffer byte to the front
+            let shortKey: Bool
             if readLength < asn1Size {
-                print("Short Key")
-                privateKeyData = Data(bytes: [0x00]) + privateKeyData
+                shortKey = true
+            } else {
+                shortKey = false
             }
         #else
             var error: Unmanaged<CFError>? = nil
@@ -390,16 +390,28 @@ public class ECPrivateKey {
                                       0x64, 0x03, 0x62])
             keyHeader += publicKeyData
         } else if self.curve == .secp521r1 {
+            #if os(Linux)
+            if shortKey {
+                keyHeader = Data(bytes: [0x30, 0x81, 0xDB,
+                                         0x02, 0x01, 0x01,
+                                         0x04, 0x41])
+            } else {
+                keyHeader = Data(bytes: [0x30, 0x81, 0xDC,
+                                         0x02, 0x01, 0x01,
+                                         0x04, 0x42])
+            }
+            #else
             keyHeader = Data(bytes: [0x30, 0x81, 0xDC,
                                      0x02, 0x01, 0x01,
                                      0x04, 0x42])
+            #endif
+
             keyHeader += privateKeyData
             keyHeader += Data(bytes: [0xA0,
                                       0x07, 0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x23,
                                       0xA1,
                                       0x81, 0x89, 0x03, 0x81, 0x86])
             keyHeader += publicKeyData
-            print("ShortenedHeader: \(keyHeader.base64EncodedString())")
         } else {
             throw ECError.unsupportedCurve
         }
