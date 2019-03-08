@@ -319,9 +319,15 @@ public class ECPrivateKey {
             }
             let asn1 = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(asn1Size))
             let readLength = BIO_read(asn1Bio, asn1, asn1Size)
-            fputs("readLength: \(readLength)", stderr)
+            guard readLength > 0 else {
+                throw ECError.failedASN1Decoding
+            }
             let asn1Data = Data(bytes: asn1, count: Int(readLength))
-            fputs("asn1Data: \(asn1Data.base64EncodedString())", stderr)
+            // OpenSSL 1.1 already returns the shortened ANS1 so can return it straight away
+            if readLength < asn1Size - 1 {
+                return ECPrivateKey.derToPrivatePEM(derData: asn1Data)
+            }
+            // Otherwise need to decode ASN1 to get public and private key
             #if swift(>=4.1)
             asn1.deallocate()
             #else
@@ -342,18 +348,17 @@ public class ECPrivateKey {
             // 521 Private key can be 65 or 66 bytes long
             // If they are 65 we add a buffer byte to the front
             let shortKey: Bool
-            if readLength < asn1Size {
+            if readLength == 672 {
                 shortKey = true
             } else {
                 shortKey = false
             }
-            fputs("shortKey: \(shortKey)", stderr)
         #else
             var error: Unmanaged<CFError>? = nil
-        /*
-         From Apple docs:
-         For an elliptic curve private key, `SecKeyCopyExternalRepresentation` output is formatted as the public key concatenated with the big endian encoding of the secret scalar, or 04 || X || Y || K.
-         */
+            /*
+             From Apple docs:
+             For an elliptic curve private key, `SecKeyCopyExternalRepresentation` output is formatted as the public key concatenated with the big endian encoding of the secret scalar, or 04 || X || Y || K.
+             */
             guard let keyBytes = SecKeyCopyExternalRepresentation(nativeKey, &error) else {
                 guard let error = error?.takeRetainedValue() else {
                     throw ECError.failedNativeKeyCreation
@@ -419,7 +424,6 @@ public class ECPrivateKey {
         } else {
             throw ECError.unsupportedCurve
         }
-        fputs("keyHeader: \(keyHeader.base64EncodedString())", stderr)
         return ECPrivateKey.derToPrivatePEM(derData: keyHeader)
     }
 
