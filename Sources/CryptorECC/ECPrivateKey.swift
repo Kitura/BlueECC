@@ -301,11 +301,13 @@ public class ECPrivateKey {
     public func decodeToPEM() throws -> String {
         #if os(Linux)
             let pemBio = BIO_new(BIO_s_mem())
-            defer { BIO_free(pemBio) }
-            i2d_ECPrivateKey_bio(pemBio, nativeKey)
+            defer { BIO_free_all(pemBio) }
             // The return value of i2d_ECPrivateKey_bio is supposed to be the DER size.
             // However it is just returning 1 for success.
             // Since the size is fixed we have just used the known values here.
+            guard i2d_ECPrivateKey_bio(pemBio, nativeKey) >= 0 else {
+                throw ECError.failedNativeKeyCreation
+            }
             let pemSize: Int32
             if curve == .prime256v1 {
                 pemSize = 364
@@ -316,7 +318,9 @@ public class ECPrivateKey {
             }
             let pem = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(pemSize))
             let readLength = BIO_read(pemBio, pem, pemSize)
+            print("readLength: \(readLength)")
             let pemData = Data(bytes: pem, count: Int(readLength))
+            print(pemData.base64EncodedString())
             #if swift(>=4.1)
             pem.deallocate()
             #else
