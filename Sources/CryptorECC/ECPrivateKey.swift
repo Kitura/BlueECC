@@ -15,10 +15,8 @@
 import Foundation
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 import CommonCrypto
-import Darwin
 #elseif os(Linux)
 import OpenSSL
-import Glibc
 #endif
 
 
@@ -65,7 +63,7 @@ public class ECPrivateKey {
     let pubKeyBytes: Data
     private var stripped: Bool = false
 
-    
+
     /**
      Initialize an ECPrivateKey from a PEM String.
      This can either be from a `.p8` file with the header "-----BEGIN PRIVATE KEY-----",
