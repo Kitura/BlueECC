@@ -24,10 +24,12 @@ final class CryptorECCTests: XCTestCase {
             ("test_EncryptionCycle384", test_EncryptionCycle384),
             ("test_EncryptionCycle512", test_EncryptionCycle512),
             ("test_newPrivatekey", test_newPrivatekey),
+            ("test_ExtractPublicKey", test_ExtractPublicKey),
             ("test_newKeyToPEM", test_newKeyToPEM),
             ("test_new384KeyToPEM", test_new384KeyToPEM),
             ("test_new512KeyToPEM", test_new512KeyToPEM),
-            ("test_ExtractPublicKey", test_ExtractPublicKey),
+            ("test_sec1PemString", test_sec1PemString),
+            ("test_P8PemString", test_P8PemString),
         ]
     
     let ecPemPrivateKey = """
@@ -458,19 +460,19 @@ Mw==
     
     func test_newPrivatekey() {
         do {
-            let p256PrivateKey = try ECPrivateKey(for: .prime256v1)
+            let p256PrivateKey = try ECPrivateKey.make(for: .prime256v1)
             let p256PubKey = try p256PrivateKey.extractPublicKey()
             let signature = try "Hello world".sign(with: p256PrivateKey)
             let verified = signature.verify(plaintext: "Hello world", using: p256PubKey)
             XCTAssertTrue(verified)
 
-            let secp384r1Key = try ECPrivateKey(for: .secp384r1)
+            let secp384r1Key = try ECPrivateKey.make(for: .secp384r1)
             let secp384r1PubKey = try secp384r1Key.extractPublicKey()
             let encrypted = try "Hello world".encrypt(with: secp384r1PubKey)
             let decrypted = try encrypted.decrypt(with: secp384r1Key)
             XCTAssertEqual("Hello world", String(data: decrypted, encoding: .utf8))
             
-            let secp521r1Key = try ECPrivateKey(for: .secp521r1)
+            let secp521r1Key = try ECPrivateKey.make(for: .secp521r1)
             let secp521r1PubKey = try secp521r1Key.extractPublicKey()
             let signature521 = try "Hello world".sign(with: secp521r1Key)
             let verified521 = signature521.verify(plaintext: "Hello world", using: secp521r1PubKey)
@@ -482,9 +484,9 @@ Mw==
     
     func test_newKeyToPEM() {
         do {
-            let p256PrivateKey = try ECPrivateKey(for: .prime256v1)
+            let p256PrivateKey = try ECPrivateKey.make(for: .prime256v1)
             let p256PubKey = try p256PrivateKey.extractPublicKey()
-            let ecdsaPrivateKey = try ECPrivateKey(key: p256PrivateKey.decodeToPEM())
+            let ecdsaPrivateKey = try ECPrivateKey(key: p256PrivateKey.pemString)
             let ecdsaPublicKey = try ECPublicKey(key: p256PubKey.pemString)
             let signature = try "Hello world".sign(with: ecdsaPrivateKey)
             let verified = signature.verify(plaintext: "Hello world", using: ecdsaPublicKey)
@@ -496,9 +498,9 @@ Mw==
     
     func test_new384KeyToPEM() {
         do {
-            let p384PrivKey = try ECPrivateKey(for: .secp384r1)
+            let p384PrivKey = try ECPrivateKey.make(for: .secp384r1)
             let p384PubKey = try p384PrivKey.extractPublicKey()
-            let p384PrivateKey = try ECPrivateKey(key: p384PrivKey.decodeToPEM())
+            let p384PrivateKey = try ECPrivateKey(key: p384PrivKey.pemString)
             let p384PublicKey = try ECPublicKey(key: p384PubKey.pemString)
             let encrypted = try "Kitura".encrypt(with: p384PublicKey)
             let decrypted = try encrypted.decrypt(with: p384PrivateKey)
@@ -510,15 +512,43 @@ Mw==
     
     func test_new512KeyToPEM() {
         do {
-            let p512PrivKey = try ECPrivateKey(for: .secp521r1)
+            let p512PrivKey = try ECPrivateKey.make(for: .secp521r1)
             let p512PubKey = try p512PrivKey.extractPublicKey()
-            let p512PrivateKey = try ECPrivateKey(key: p512PrivKey.decodeToPEM())
+            let p512PrivateKey = try ECPrivateKey(key: p512PrivKey.pemString)
             let p512PublicKey = try ECPublicKey(key: p512PubKey.pemString)
             let encrypted = try "Kitura".encrypt(with: p512PublicKey)
             let decrypted = try encrypted.decrypt(with: p512PrivateKey)
             XCTAssertEqual("Kitura", String(data: decrypted, encoding: .utf8))
         } catch {
             return XCTFail("test_new384KeyToPEM failed: \(error)")
+        }
+    }
+    
+    func test_sec1PemString() {
+        do {
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecPemPrivateKey)
+            let ecdsaPublicKey = try ECPublicKey(key: ecPemPublicKey)
+            let pemPrivateKey = try ECPrivateKey(key: ecdsaPrivateKey.pemString)
+            let pemPublicKey = try ECPublicKey(key: ecdsaPublicKey.pemString)
+            let signature = try "Hello world".sign(with: pemPrivateKey)
+            let verified = signature.verify(plaintext: "Hello world", using: pemPublicKey)
+            XCTAssertTrue(verified)
+        } catch {
+            return XCTFail("test_pemString failed: \(error)")
+        }
+    }
+    
+    func test_P8PemString() {
+        do {
+            let ecdsaPrivateKey = try ECPrivateKey(key: ecP8PrivateKey)
+            let ecdsaPublicKey = try ECPublicKey(key: ecP8PublicKey)
+            let pemPrivateKey = try ECPrivateKey(key: ecdsaPrivateKey.pemString)
+            let pemPublicKey = try ECPublicKey(key: ecdsaPublicKey.pemString)
+            let signature = try "Hello world".sign(with: pemPrivateKey)
+            let verified = signature.verify(plaintext: "Hello world", using: pemPublicKey)
+            XCTAssertTrue(verified)
+        } catch {
+            return XCTFail("test_P8PemString failed: \(error)")
         }
     }
 }

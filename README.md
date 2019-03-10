@@ -57,13 +57,13 @@ import CryptorECC
 you can generate an ECPrivate key using BlueECC.
 
 ```swift
-let p256PrivateKey = try ECPrivateKey(for: .prime256v1)
+let p256PrivateKey = try ECPrivateKey.make(for: .prime256v1)
 ```
 
-You can then view this key by decoding it to the PEM format:
+You can then view the key in it's PEM format as follows:
 
 ```swift
-let privateKeyPEM = try p256PrivateKey.decodeToPEM()
+let privateKeyPEM = try p256PrivateKey.pemString
 ```
 
 The following curves are supported:
