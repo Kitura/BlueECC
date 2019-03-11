@@ -63,7 +63,7 @@ let p256PrivateKey = try ECPrivateKey.make(for: .prime256v1)
 You can then view the key in it's PEM format as follows:
 
 ```swift
-let privateKeyPEM = try p256PrivateKey.pemString
+let privateKeyPEM = p256PrivateKey.pemString
 ```
 
 The following curves are supported:
