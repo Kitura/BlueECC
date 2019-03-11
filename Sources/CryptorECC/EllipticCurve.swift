@@ -136,17 +136,36 @@ public struct EllipticCurve: Equatable, CustomStringConvertible {
 
 extension String {
     
-    // Recursive function to insert a separator for every n characters in swift
-    func inserting(separator: String, every n: Int) -> String {
-        var string = self
-        string.insert(separator: separator, every: n)
-        return string
-    }
-    
-    private mutating func insert(separator: String, every n: Int) {
-        for index in indices.reversed() where index != startIndex &&
-            distance(from: startIndex, to: index) % n == 0 {
-                insert(contentsOf: separator, at: index)
+    ///
+    /// Split a string to a specified length.
+    ///
+    ///    - Parameters:
+    ///        - length:                Length of each split string.
+    ///
+    ///    - Returns:                    `[String]` containing each string.
+    ///
+    func split(to length: Int) -> [String] {
+        
+        var result = [String]()
+        var collectedCharacters = [Character]()
+        collectedCharacters.reserveCapacity(length)
+        var count = 0
+        
+        for character in self {
+            collectedCharacters.append(character)
+            count += 1
+            if count == length {
+                // Reached the desired length
+                count = 0
+                result.append(String(collectedCharacters))
+                collectedCharacters.removeAll(keepingCapacity: true)
+            }
         }
+        
+        // Append the remainder
+        if !collectedCharacters.isEmpty {
+            result.append(String(collectedCharacters))
+        }
+        return result
     }
 }

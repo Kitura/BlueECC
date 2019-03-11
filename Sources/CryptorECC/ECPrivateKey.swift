@@ -465,8 +465,10 @@ public class ECPrivateKey {
     private static func derToPrivatePEM(derData: Data) -> String {
         // First convert the DER data to a base64 string...
         let base64String = derData.base64EncodedString()
-        // Add a new line character after every 64 characters.
-        let lines = base64String.inserting(separator: "\n", every: 64)
-        return "-----BEGIN EC PRIVATE KEY-----\n" + lines + "\n-----END EC PRIVATE KEY-----"
+        // Split the string into strings of length 64.
+        let lines = base64String.split(to: 64)
+        // Join those lines with a new line...
+        let joinedLines = lines.joined(separator: "\n")
+        return "-----BEGIN EC PRIVATE KEY-----\n" + joinedLines + "\n-----END EC PRIVATE KEY-----"
     }
 }
