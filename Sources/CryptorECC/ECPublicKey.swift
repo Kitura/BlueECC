@@ -103,7 +103,7 @@ public class ECPublicKey {
     /// - Returns: An ECPublicKey.
     /// - Throws: An ECError if the Data can't be decoded or is not a valid key.
     public init(der: Data) throws {
-        pemString = ECPublicKey.derToPEMString(derData: der)
+        pemString = ECPublicKey.derToPublicPEM(derData: der)
         let (result, _) = ASN1.toASN1Element(data: der)
         guard case let ASN1.ASN1Element.seq(elements: seq) = result,
             seq.count > 1,
@@ -155,50 +155,13 @@ public class ECPublicKey {
         #endif
     }
     
-    private static func derToPEMString(derData: Data) -> String {
+    private static func derToPublicPEM(derData: Data) -> String {
         // First convert the DER data to a base64 string...
         let base64String = derData.base64EncodedString()
-        // Split the string into strings of length 65...
+        // Split the string into strings of length 64.
         let lines = base64String.split(to: 64)
         // Join those lines with a new line...
         let joinedLines = lines.joined(separator: "\n")
         return "-----BEGIN PUBLIC KEY-----\n" + joinedLines + "\n-----END PUBLIC KEY-----"
-    }
-}
-
-private extension String {
-    
-    ///
-    /// Split a string to a specified length.
-    ///
-    ///    - Parameters:
-    ///        - length:                Length of each split string.
-    ///
-    ///    - Returns:                    `[String]` containing each string.
-    ///
-    func split(to length: Int) -> [String] {
-        
-        var result = [String]()
-        var collectedCharacters = [Character]()
-        collectedCharacters.reserveCapacity(length)
-        var count = 0
-        
-        for character in self {
-            collectedCharacters.append(character)
-            count += 1
-            if count == length {
-                // Reached the desired length
-                count = 0
-                result.append(String(collectedCharacters))
-                collectedCharacters.removeAll(keepingCapacity: true)
-            }
-        }
-        
-        // Append the remainder
-        if !collectedCharacters.isEmpty {
-            result.append(String(collectedCharacters))
-        }
-        
-        return result
     }
 }
