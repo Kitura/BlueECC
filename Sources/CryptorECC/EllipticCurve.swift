@@ -128,8 +128,9 @@ public struct EllipticCurve: Equatable, CustomStringConvertible {
         
         var hash = [UInt8](repeating: 0, count: Int(self.hashLength))
         #if swift(>=5.0)
-        data.withUnsafeBytes {
-            _ = self.hashEngine($0.baseAddress, CC_LONG(data.count), &hash)
+        data.withUnsafeBytes { ptr in
+            guard let baseAddress = ptr.baseAddress else { return }
+            _ = self.hashEngine(baseAddress.assumingMemoryBound(to: UInt8.self), CC_LONG(data.count), &hash)
         }
         return Data(hash)
         #else
