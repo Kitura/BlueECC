@@ -85,7 +85,11 @@ extension Data {
         
         // get aes key and iv using ANSI x9.63 Key Derivation Function
         let symKeyData = Data(bytes: symKey, count: skey_len)
+        #if swift(>=5.0)
+        let counterData = Data([0x00, 0x00, 0x00, 0x01])
+        #else
         let counterData = Data(bytes: [0x00, 0x00, 0x00, 0x01])
+        #endif
         let preHashKey = symKeyData + counterData + encryptedKey
         let hashedKey = key.curve.digest(data: preHashKey)
         let aesKey = [UInt8](hashedKey.subdata(in: 0 ..< 16))

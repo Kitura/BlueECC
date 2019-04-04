@@ -89,7 +89,11 @@ extension Data: ECEncryptable {
         
         // get aes key and iv using ANSI x9.63 Key Derivation Function
         let symKeyData = Data(bytes: symKey, count: symKey_len)
+        #if swift(>=5.0)
+        let counterData = Data([0x00, 0x00, 0x00, 0x01])
+        #else
         let counterData = Data(bytes: [0x00, 0x00, 0x00, 0x01])
+        #endif
         let sharedInfo = Data(bytes: pubk, count: key.curve.keySize)
         let preHashKey = symKeyData + counterData + sharedInfo
         let hashedKey = key.curve.digest(data: preHashKey)
