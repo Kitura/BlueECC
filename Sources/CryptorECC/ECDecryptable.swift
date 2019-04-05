@@ -66,8 +66,8 @@ extension Data {
         defer {
             EC_POINT_free(pubk_point)
         }
-        encryptedKey.withUnsafeBytes({ (pubk: UnsafePointer<UInt8>) in
-            let pubk_bn = BN_bin2bn(pubk, Int32(encryptedKey.count), nil)
+        encryptedKey.withUnsafeBytes({ (pubk: UnsafeRawBufferPointer) in
+            let pubk_bn = BN_bin2bn(pubk.baseAddress?.assumingMemoryBound(to: UInt8.self), Int32(encryptedKey.count), nil)
             let pubk_bn_ctx = BN_CTX_new()
             BN_CTX_start(pubk_bn_ctx)
             EC_POINT_bn2point(ec_group, pubk_bn, pubk_point, pubk_bn_ctx)
@@ -85,7 +85,7 @@ extension Data {
         
         // get aes key and iv using ANSI x9.63 Key Derivation Function
         let symKeyData = Data(bytes: symKey, count: skey_len)
-        let counterData = Data(bytes: [0x00, 0x00, 0x00, 0x01])
+        let counterData = Data([0x00, 0x00, 0x00, 0x01])
         let preHashKey = symKeyData + counterData + encryptedKey
         let hashedKey = key.curve.digest(data: preHashKey)
         let aesKey = [UInt8](hashedKey.subdata(in: 0 ..< 16))
@@ -109,15 +109,15 @@ extension Data {
         }
         
         // Decrypt the encrypted data using the symmetric key.
-        guard encryptedData.withUnsafeBytes({ (enc: UnsafePointer<UInt8>) -> Int32 in
-            return EVP_DecryptUpdate(rsaDecryptCtx, decrypted, &processedLen, enc, Int32(encryptedData.count))
+        guard encryptedData.withUnsafeBytes({ (enc: UnsafeRawBufferPointer) -> Int32 in
+            return EVP_DecryptUpdate(rsaDecryptCtx, decrypted, &processedLen, enc.baseAddress?.assumingMemoryBound(to: UInt8.self), Int32(encryptedData.count))
         }) != 0 else {
             throw ECError.failedDecryptionAlgorithm
         }
         decMsgLen += processedLen
         // Verify the provided GCM tag.
-        guard tagData.withUnsafeMutableBytes({ (tag: UnsafeMutablePointer<UInt8>) -> Int32 in
-            return EVP_CIPHER_CTX_ctrl(rsaDecryptCtx, EVP_CTRL_GCM_SET_TAG, 16, tag)
+        guard tagData.withUnsafeMutableBytes({ (tag: UnsafeMutableRawBufferPointer) -> Int32 in
+            return EVP_CIPHER_CTX_ctrl(rsaDecryptCtx, EVP_CTRL_GCM_SET_TAG, 16, tag.baseAddress)
         }) == 1
         else {
             throw ECError.failedDecryptionAlgorithm

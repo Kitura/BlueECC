@@ -89,7 +89,7 @@ extension Data: ECEncryptable {
         
         // get aes key and iv using ANSI x9.63 Key Derivation Function
         let symKeyData = Data(bytes: symKey, count: symKey_len)
-        let counterData = Data(bytes: [0x00, 0x00, 0x00, 0x01])
+        let counterData = Data([0x00, 0x00, 0x00, 0x01])
         let sharedInfo = Data(bytes: pubk, count: key.curve.keySize)
         let preHashKey = symKeyData + counterData + sharedInfo
         let hashedKey = key.curve.digest(data: preHashKey)
@@ -139,8 +139,8 @@ extension Data: ECEncryptable {
             throw ECError.failedDecryptionAlgorithm
         }
         // Encrypt the plaintext into encrypted using gcmAlgorithm with the random aes key and all 0 iv.
-        guard(self.withUnsafeBytes({ (plaintext: UnsafePointer<UInt8>) -> Int32 in
-            return EVP_EncryptUpdate(rsaEncryptCtx, encrypted, &processedLength, plaintext, Int32(self.count))
+        guard(self.withUnsafeBytes({ (plaintext: UnsafeRawBufferPointer) -> Int32 in
+            return EVP_EncryptUpdate(rsaEncryptCtx, encrypted, &processedLength, plaintext.baseAddress?.assumingMemoryBound(to: UInt8.self), Int32(self.count))
         })) == 1 else {
             throw ECError.failedEncryptionAlgorithm
         }

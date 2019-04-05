@@ -123,8 +123,8 @@ public class ECPublicKey {
             defer {
                 BN_free(bigNum)
             }
-            publicKeyData.withUnsafeBytes({ (pubKeyBytes: UnsafePointer<UInt8>) -> Void in
-                BN_bin2bn(pubKeyBytes, Int32(publicKeyData.count), bigNum)
+            publicKeyData.withUnsafeBytes({ (pubKeyBytes: UnsafeRawBufferPointer) -> Void in
+                BN_bin2bn(pubKeyBytes.baseAddress?.assumingMemoryBound(to: UInt8.self), Int32(publicKeyData.count), bigNum)
             })
             let ecKey = EC_KEY_new_by_curve_name(curve.nativeCurve)
             let ecGroup = EC_KEY_get0_group(ecKey)

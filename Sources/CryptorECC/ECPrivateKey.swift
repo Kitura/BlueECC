@@ -210,20 +210,20 @@ public class ECPrivateKey {
         //         OBJECT IDENTIFIER
         //     BIT STRING (This is the `pubKeyBytes` added afterwards)
         if self.curve == .prime256v1 {
-            keyHeader = Data(bytes: [0x30, 0x59,
-                                     0x30, 0x13,
-                                     0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
-                                     0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x03, 0x42])
+            keyHeader = Data([0x30, 0x59,
+                              0x30, 0x13,
+                              0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
+                              0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x03, 0x42])
         } else if self.curve == .secp384r1 {
-            keyHeader = Data(bytes: [0x30, 0x76,
-                                     0x30, 0x10,
-                                     0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
-                                     0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x22, 0x03, 0x62])
+            keyHeader = Data([0x30, 0x76,
+                              0x30, 0x10,
+                              0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
+                              0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x22, 0x03, 0x62])
         } else if self.curve == .secp521r1 {
-            keyHeader = Data(bytes: [0x30, 0x81, 0x9B,
-                                     0x30, 0x10,
-                                     0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
-                                     0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x23, 0x03, 0x81, 0x86])
+            keyHeader = Data([0x30, 0x81, 0x9B,
+                              0x30, 0x10,
+                              0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
+                              0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x23, 0x03, 0x81, 0x86])
         } else {
             throw ECError.unsupportedCurve
         }
@@ -372,7 +372,7 @@ public class ECPrivateKey {
             }
             let keyData = keyBytes as Data
             let privateKeyData = keyData.dropFirst(curve.keySize)
-            let publicKeyData = Data(bytes: [0x00]) + keyData.dropLast(keyData.count - curve.keySize)
+            let publicKeyData = Data(count: 1) + keyData.dropLast(keyData.count - curve.keySize)
         #endif
         let derData = ECPrivateKey.generateASN1(privateKey: privateKeyData, publicKey: publicKeyData, curve: curve)
         return ECPrivateKey.derToPrivatePEM(derData: derData)
@@ -389,41 +389,41 @@ public class ECPrivateKey {
         //     [1] (1 elem)
         //         BIT STRING (This is the `pubKeyBytes`)
         if curve == .prime256v1 {
-            keyHeader = Data(bytes: [0x30, 0x77,
-                                     0x02, 0x01, 0x01,
-                                     0x04, 0x20])
+            keyHeader = Data([0x30, 0x77,
+                              0x02, 0x01, 0x01,
+                              0x04, 0x20])
             keyHeader += privateKey
-            keyHeader += Data(bytes: [0xA0,
-                                      0x0A, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07,
-                                      0xA1,
-                                      0x44, 0x03, 0x42])
+            keyHeader += Data([0xA0,
+                               0x0A, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07,
+                               0xA1,
+                               0x44, 0x03, 0x42])
             keyHeader += publicKey
         } else if curve == .secp384r1 {
-            keyHeader = Data(bytes: [0x30, 0x81, 0xA4,
-                                     0x02, 0x01, 0x01,
-                                     0x04, 0x30])
+            keyHeader = Data([0x30, 0x81, 0xA4,
+                              0x02, 0x01, 0x01,
+                              0x04, 0x30])
             keyHeader += privateKey
-            keyHeader += Data(bytes: [0xA0,
-                                      0x07, 0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x22,
-                                      0xA1,
-                                      0x64, 0x03, 0x62])
+            keyHeader += Data([0xA0,
+                               0x07, 0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x22,
+                               0xA1,
+                               0x64, 0x03, 0x62])
             keyHeader += publicKey
         } else {
             // 521 Private key can be 65 or 66 bytes long
             if privateKey.count == 65 {
-                keyHeader = Data(bytes: [0x30, 0x81, 0xDB,
-                                         0x02, 0x01, 0x01,
-                                         0x04, 0x41])
+                keyHeader = Data([0x30, 0x81, 0xDB,
+                                  0x02, 0x01, 0x01,
+                                  0x04, 0x41])
             } else {
-                keyHeader = Data(bytes: [0x30, 0x81, 0xDC,
-                                         0x02, 0x01, 0x01,
-                                         0x04, 0x42])
+                keyHeader = Data([0x30, 0x81, 0xDC,
+                                  0x02, 0x01, 0x01,
+                                  0x04, 0x42])
             }
             keyHeader += privateKey
-            keyHeader += Data(bytes: [0xA0,
-                                      0x07, 0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x23,
-                                      0xA1,
-                                      0x81, 0x89, 0x03, 0x81, 0x86])
+            keyHeader += Data([0xA0,
+                               0x07, 0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x23,
+                               0xA1,
+                               0x81, 0x89, 0x03, 0x81, 0x86])
             keyHeader += publicKey
         }
         return keyHeader
@@ -435,8 +435,8 @@ public class ECPrivateKey {
             defer {
                 BN_free(bigNum)
             }
-            privateKeyData.withUnsafeBytes({ (privateKeyBytes: UnsafePointer<UInt8>) -> Void in
-                BN_bin2bn(privateKeyBytes, Int32(privateKeyData.count), bigNum)
+            privateKeyData.withUnsafeBytes({ (privateKeyBytes: UnsafeRawBufferPointer) -> Void in
+                BN_bin2bn(privateKeyBytes.baseAddress?.assumingMemoryBound(to: UInt8.self), Int32(privateKeyData.count), bigNum)
             })
             let ecKey = EC_KEY_new_by_curve_name(curve.nativeCurve)
             guard EC_KEY_set_private_key(ecKey, bigNum) == 1 else {

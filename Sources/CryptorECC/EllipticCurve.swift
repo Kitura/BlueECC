@@ -127,10 +127,11 @@ public struct EllipticCurve: Equatable, CustomStringConvertible {
     func digest(data: Data) -> Data {
         
         var hash = [UInt8](repeating: 0, count: Int(self.hashLength))
-        data.withUnsafeBytes {
-            _ = self.hashEngine($0, CC_LONG(data.count), &hash)
+        data.withUnsafeBytes { ptr in
+            guard let baseAddress = ptr.baseAddress else { return }
+            _ = self.hashEngine(baseAddress.assumingMemoryBound(to: UInt8.self), CC_LONG(data.count), &hash)
         }
-        return Data(bytes: hash)
+        return Data(hash)
     }
 }
 
