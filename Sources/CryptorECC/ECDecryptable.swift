@@ -66,6 +66,17 @@ extension Data {
         defer {
             EC_POINT_free(pubk_point)
         }
+        #if swift(>=5.0)
+        encryptedKey.withUnsafeBytes({ (pubk: UnsafeRawBufferPointer) in
+            let pubk_bn = BN_bin2bn(pubk.baseAddress?.assumingMemoryBound(to: UInt8.self), Int32(encryptedKey.count), nil)
+            let pubk_bn_ctx = BN_CTX_new()
+            BN_CTX_start(pubk_bn_ctx)
+            EC_POINT_bn2point(ec_group, pubk_bn, pubk_point, pubk_bn_ctx)
+            BN_CTX_end(pubk_bn_ctx)
+            BN_CTX_free(pubk_bn_ctx)
+            BN_clear_free(pubk_bn)
+        })
+        #else
         encryptedKey.withUnsafeBytes({ (pubk: UnsafePointer<UInt8>) in
             let pubk_bn = BN_bin2bn(pubk, Int32(encryptedKey.count), nil)
             let pubk_bn_ctx = BN_CTX_new()
@@ -75,6 +86,7 @@ extension Data {
             BN_CTX_free(pubk_bn_ctx)
             BN_clear_free(pubk_bn)
         })
+        #endif
 
         // calculate symmetric key
         ECDH_compute_key(symKey, skey_len, pubk_point, key.nativeKey, nil)
@@ -112,6 +124,22 @@ extension Data {
             throw ECError.failedDecryptionAlgorithm
         }
         
+        #if swift(>=5.0)
+        // Decrypt the encrypted data using the symmetric key.
+        guard encryptedData.withUnsafeBytes({ (enc: UnsafeRawBufferPointer) -> Int32 in
+            return EVP_DecryptUpdate(rsaDecryptCtx, decrypted, &processedLen, enc.baseAddress?.assumingMemoryBound(to: UInt8.self), Int32(encryptedData.count))
+        }) != 0 else {
+            throw ECError.failedDecryptionAlgorithm
+        }
+        decMsgLen += processedLen
+        // Verify the provided GCM tag.
+        guard tagData.withUnsafeMutableBytes({ (tag: UnsafeMutableRawBufferPointer) -> Int32 in
+            return EVP_CIPHER_CTX_ctrl(rsaDecryptCtx, EVP_CTRL_GCM_SET_TAG, 16, tag.baseAddress)
+        }) == 1
+        else {
+            throw ECError.failedDecryptionAlgorithm
+        }
+        #else
         // Decrypt the encrypted data using the symmetric key.
         guard encryptedData.withUnsafeBytes({ (enc: UnsafePointer<UInt8>) -> Int32 in
             return EVP_DecryptUpdate(rsaDecryptCtx, decrypted, &processedLen, enc, Int32(encryptedData.count))
@@ -123,9 +151,10 @@ extension Data {
         guard tagData.withUnsafeMutableBytes({ (tag: UnsafeMutablePointer<UInt8>) -> Int32 in
             return EVP_CIPHER_CTX_ctrl(rsaDecryptCtx, EVP_CTRL_GCM_SET_TAG, 16, tag)
         }) == 1
-        else {
-            throw ECError.failedDecryptionAlgorithm
+            else {
+                throw ECError.failedDecryptionAlgorithm
         }
+        #endif
         guard EVP_DecryptFinal_ex(rsaDecryptCtx, decrypted.advanced(by: Int(decMsgLen)), &processedLen) == 1 else {
             throw ECError.failedDecryptionAlgorithm
         }

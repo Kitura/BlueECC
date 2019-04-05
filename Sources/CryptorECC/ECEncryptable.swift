@@ -143,11 +143,19 @@ extension Data: ECEncryptable {
             throw ECError.failedDecryptionAlgorithm
         }
         // Encrypt the plaintext into encrypted using gcmAlgorithm with the random aes key and all 0 iv.
+        #if swift(>=5.0)
+        guard(self.withUnsafeBytes({ (plaintext: UnsafeRawBufferPointer) -> Int32 in
+            return EVP_EncryptUpdate(rsaEncryptCtx, encrypted, &processedLength, plaintext.baseAddress?.assumingMemoryBound(to: UInt8.self), Int32(self.count))
+        })) == 1 else {
+            throw ECError.failedEncryptionAlgorithm
+        }
+        #else
         guard(self.withUnsafeBytes({ (plaintext: UnsafePointer<UInt8>) -> Int32 in
             return EVP_EncryptUpdate(rsaEncryptCtx, encrypted, &processedLength, plaintext, Int32(self.count))
         })) == 1 else {
             throw ECError.failedEncryptionAlgorithm
         }
+        #endif
 
         encLength += processedLength
         // Finalize the encryption so no more data will be added and generate the GCM tag.

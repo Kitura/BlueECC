@@ -209,47 +209,46 @@ public class ECPrivateKey {
         //         OBJECT IDENTIFIER
         //         OBJECT IDENTIFIER
         //     BIT STRING (This is the `pubKeyBytes` added afterwards)
+        #if swift(>=5.0)
         if self.curve == .prime256v1 {
-            #if swift(>=5.0)
             keyHeader = Data([0x30, 0x59,
                               0x30, 0x13,
                               0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
                               0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x03, 0x42])
-            #else
-            keyHeader = Data(bytes: [0x30, 0x59,
-                                     0x30, 0x13,
-                                     0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
-                                     0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x03, 0x42])
-            #endif
-            
         } else if self.curve == .secp384r1 {
-            #if swift(>=5.0)
             keyHeader = Data([0x30, 0x76,
                               0x30, 0x10,
                               0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
                               0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x22, 0x03, 0x62])
-            #else
-            keyHeader = Data(bytes: [0x30, 0x76,
-                                     0x30, 0x10,
-                                     0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
-                                     0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x22, 0x03, 0x62])
-            #endif
         } else if self.curve == .secp521r1 {
-            #if swift(>=5.0)
             keyHeader = Data([0x30, 0x81, 0x9B,
                               0x30, 0x10,
                               0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
                               0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x23, 0x03, 0x81, 0x86])
-            #else
-            keyHeader = Data(bytes: [0x30, 0x81, 0x9B,
-                                     0x30, 0x10,
-                                     0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
-                                     0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x23, 0x03, 0x81, 0x86])
-            #endif
-            
         } else {
             throw ECError.unsupportedCurve
         }
+        #else
+        if self.curve == .prime256v1 {
+            keyHeader = Data(bytes: [0x30, 0x59,
+                                     0x30, 0x13,
+                                     0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
+                                     0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x03, 0x42])
+
+        } else if self.curve == .secp384r1 {
+            keyHeader = Data(bytes: [0x30, 0x76,
+                                     0x30, 0x10,
+                                     0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
+                                     0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x22, 0x03, 0x62])
+        } else if self.curve == .secp521r1 {
+            keyHeader = Data(bytes: [0x30, 0x81, 0x9B,
+                             0x30, 0x10,
+                             0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
+                             0x06, 0x05, 0x2B, 0x81, 0x04, 0x00, 0x23, 0x03, 0x81, 0x86])            
+        } else {
+        throw ECError.unsupportedCurve
+        }
+        #endif
         // If we stripped the leading zero earlier, add it back here
         var pubBytes = self.pubKeyBytes
         if stripped {
@@ -499,9 +498,15 @@ public class ECPrivateKey {
             defer {
                 BN_free(bigNum)
             }
+            #if swift(>=5.0)
+            privateKeyData.withUnsafeBytes({ (privateKeyBytes: UnsafeRawBufferPointer) -> Void in
+                BN_bin2bn(privateKeyBytes.baseAddress?.assumingMemoryBound(to: UInt8.self), Int32(privateKeyData.count), bigNum)
+            })
+            #else
             privateKeyData.withUnsafeBytes({ (privateKeyBytes: UnsafePointer<UInt8>) -> Void in
                 BN_bin2bn(privateKeyBytes, Int32(privateKeyData.count), bigNum)
             })
+            #endif
             let ecKey = EC_KEY_new_by_curve_name(curve.nativeCurve)
             guard EC_KEY_set_private_key(ecKey, bigNum) == 1 else {
                 EC_KEY_free(ecKey)

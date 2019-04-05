@@ -63,12 +63,19 @@ extension Data: ECSignable {
             throw ECError.failedEvpInit
         }
     
+        #if swift(>=5.0)
+        guard self.withUnsafeBytes({ (message: UnsafeRawBufferPointer) -> Int32 in
+            return EVP_DigestUpdate(md_ctx, message.baseAddress?.assumingMemoryBound(to: UInt8.self), self.count)
+        }) == 1 else {
+            throw ECError.failedSigningAlgorithm
+        }
+        #else
         guard self.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in
             return EVP_DigestUpdate(md_ctx, message, self.count)
         }) == 1 else {
             throw ECError.failedSigningAlgorithm
         }
-    
+        #endif
         var sig_len: Int = 0
         EVP_DigestSignFinal(md_ctx, nil, &sig_len)
         let sig = UnsafeMutablePointer<UInt8>.allocate(capacity: sig_len)
