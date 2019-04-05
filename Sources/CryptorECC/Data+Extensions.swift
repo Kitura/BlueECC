@@ -31,5 +31,9 @@ internal extension Data {
             try body(UnsafeMutableRawBufferPointer(start: p, count: c))
         }
     }
+    
+    init(_ bytes: [UInt8]) {
+        self.init(bytes: bytes)
+    } 
 }
 #endif

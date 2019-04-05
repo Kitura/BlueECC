@@ -95,7 +95,6 @@ public struct ECSignature {
         }
     
         EVP_DigestVerifyInit(md_ctx, nil, .make(optional: ecPublicKey.curve.signingAlgorithm), nil, evp_key)
-        #if swift(>=5.0)
         guard plaintext.withUnsafeBytes({ (message: UnsafeRawBufferPointer) -> Int32 in
             return EVP_DigestUpdate(md_ctx, message.baseAddress?.assumingMemoryBound(to: UInt8.self), plaintext.count)
         }) == 1 else {
@@ -105,17 +104,6 @@ public struct ECSignature {
         return SSL_EVP_digestVerifyFinal_wrapper(md_ctx, sig.baseAddress?.assumingMemoryBound(to: UInt8.self), self.asn1.count)
         })
         return rc == 1
-        #else
-        guard plaintext.withUnsafeBytes({ (message: UnsafePointer<UInt8>) -> Int32 in
-            return EVP_DigestUpdate(md_ctx, message, plaintext.count)
-        }) == 1 else {
-            return false
-        }
-        let rc = self.asn1.withUnsafeBytes({ (sig: UnsafePointer<UInt8>) -> Int32 in
-            return SSL_EVP_digestVerifyFinal_wrapper(md_ctx, sig, self.asn1.count)
-        })
-        return rc == 1
-        #endif
     #else
         let hash = ecPublicKey.curve.digest(data: plaintext)
 
