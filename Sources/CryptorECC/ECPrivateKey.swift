@@ -42,7 +42,7 @@ import OpenSSL
  let signature = "Hello world".sign(with: privateKey)
  ```
  */
-@available(OSX 10.13, *)
+@available(macOS 10.13, iOS 11, *)
 public class ECPrivateKey {
     /// A String description of the curve this key was generated from.
     public let curveId: String

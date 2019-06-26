@@ -1,7 +1,7 @@
 import XCTest
 @testable import CryptorECC
 
-@available(OSX 10.13, *)
+@available(macOS 10.13, iOS 11, *)
 final class CryptorECCTests: XCTestCase {
     static var allTests = [
             ("test_simpleCycle", test_simpleCycle),
