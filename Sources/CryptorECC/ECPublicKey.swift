@@ -45,7 +45,7 @@ import OpenSSL
  let verified = signature.verify(plaintext: "Hello world", using: publicKey)
  ```
  */
-@available(OSX 10.13, *)
+@available(macOS 10.13, iOS 11, *)
 public class ECPublicKey {
     /// A String description of the curve this key was generated from.
     public let curveId: String

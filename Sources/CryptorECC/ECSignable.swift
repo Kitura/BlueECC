@@ -22,13 +22,13 @@ import OpenSSL
 #endif
 
 /// A protocol for signing an instance of some object to generate an `ECSignature`.
-@available(OSX 10.13, *)
+@available(macOS 10.13, iOS 11, *)
 protocol ECSignable {
     /// Sign the object using ECDSA and produce an `ECSignature`.
     func sign(with: ECPrivateKey) throws -> ECSignature
 }
 
-@available(OSX 10.13, *)
+@available(macOS 10.13, iOS 11, *)
 extension String: ECSignable {
     /// UTF8 encode the String to Data and sign it using the `ECPrivateKey`.
     /// The Data is signed using ECDSA with either SHA256, SHA384 or SHA512, depending on the key's curve.
@@ -40,7 +40,7 @@ extension String: ECSignable {
     }
 }
 
-@available(OSX 10.13, *)
+@available(macOS 10.13, iOS 11, *)
 extension Data: ECSignable {
     /// Sign the plaintext data using the provided `ECPrivateKey`.
     /// The Data is signed using ECDSA with either SHA256, SHA384 or SHA512, depending on the key's curve.

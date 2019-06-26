@@ -23,7 +23,7 @@ import OpenSSL
 
 /// The signature produced by applying an Elliptic Curve Digital Signature Algorithm to some Plaintext data.
 /// It consists of two binary unsigned integers, `r` and `s`.
-@available(OSX 10.13, *)
+@available(macOS 10.13, iOS 11, *)
 public struct ECSignature {
     
     // MARK: Signature Values

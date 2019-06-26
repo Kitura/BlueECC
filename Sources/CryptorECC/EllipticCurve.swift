@@ -22,7 +22,7 @@ import Foundation
 #endif
 
 /// An extensible list of elliptic curves supported by this repository.
-@available(OSX 10.13, *)
+@available(macOS 10.13, iOS 11, *)
 public struct EllipticCurve: Equatable, CustomStringConvertible {
     
     private let internalRepresentation: InternalRepresentation
