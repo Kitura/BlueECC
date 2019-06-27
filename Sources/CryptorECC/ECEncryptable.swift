@@ -22,14 +22,14 @@ import OpenSSL
 #endif
 
 /// A protocol for encrypting an instance of some object to generate some encrypted data.
-@available(macOS 10.13, iOS 11, *)
+@available(macOS 10.13, iOS 11, watchOS 4.0, tvOS 11.0, *)
 protocol ECEncryptable {
     /// Encrypt the object using ECIES and produce some encrypted `Data`.
     func encrypt(with: ECPublicKey) throws -> Data
 }
 
 /// Extensions for encrypting or signing a `String` by converting it to UTF8 Data, then using the appropriate algorithm determined by the key's curve with the provided `ECPrivateKey` or `ECPublicKey`.
-@available(macOS 10.13, iOS 11, *)
+@available(macOS 10.13, iOS 11, watchOS 4.0, tvOS 11.0, *)
 extension String: ECEncryptable {
     
     /// UTF8 encode the String to Data and encrypt it using the `ECPublicKey`.
@@ -44,7 +44,7 @@ extension String: ECEncryptable {
 }
 
 /// Extension for signing `Data` with an `ECPrivateKey` and the algorithm determined by the key's curve.
-@available(macOS 10.13, iOS 11, *)
+@available(macOS 10.13, iOS 11, watchOS 4.0, tvOS 11.0, *)
 extension Data: ECEncryptable {
     
     /// Encrypt the data using the `ECPublicKey`.
