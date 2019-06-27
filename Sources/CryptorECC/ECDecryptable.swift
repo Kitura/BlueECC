@@ -22,7 +22,7 @@ import OpenSSL
 #endif
 
 /// Extensions for encrypting, decrypting or signing `Data` using the appropriate algorithm determined by the key's curve with the provided `ECPrivateKey` or `ECPublicKey`.
-@available(macOS 10.13, iOS 11, *)
+@available(macOS 10.13, iOS 11, watchOS 4.0, tvOS 11.0, *)
 extension Data {
     
     /// Decrypt the encrypted data using the provided `ECPrivateKey`.
