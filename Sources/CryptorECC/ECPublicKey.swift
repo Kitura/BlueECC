@@ -82,7 +82,7 @@ public class ECPublicKey {
      */
     public convenience init(key: String) throws {
         let strippedKey = String(key.filter { !" \n\t\r".contains($0) })
-        var pemComponents = strippedKey.components(separatedBy: "-----")
+        let pemComponents = strippedKey.components(separatedBy: "-----")
         guard pemComponents.count == 5 else {
             throw ECError.invalidPEMString
         }
