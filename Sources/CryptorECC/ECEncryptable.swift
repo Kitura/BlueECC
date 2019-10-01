@@ -102,10 +102,6 @@ extension Data: ECEncryptable {
         let rsaEncryptCtx = EVP_CIPHER_CTX_new_wrapper()
         EVP_CIPHER_CTX_init_wrapper(rsaEncryptCtx)
         
-        // Set the additional authenticated data (aad) as the RSA key modulus and publicExponent in an ASN1 sequence.
-        let encryptedCapacity: Int
-        let keySize: Int
-        
         // Allocate encryption memory
         let tag = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
         let encrypted = UnsafeMutablePointer<UInt8>.allocate(capacity: self.count + 16)
