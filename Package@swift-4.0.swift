@@ -4,7 +4,7 @@
 //  Package.swift
 //  CryptorRSA
 //
-//  Copyright © 2019 IBM. All rights reserved.
+//  Copyright © 2019-2020 IBM and the authors of the Kitura project. All rights reserved.
 //
 //     Licensed under the Apache License, Version 2.0 (the "License");
 //     you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ var targetDependencies: [Target.Dependency] = []
 
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 
-    let CryptoLibUrl = "https://github.com/IBM-Swift/CommonCrypto.git"
+    let CryptoLibUrl = "https://github.com/Kitura/CommonCrypto.git"
     let CryptoLibVersion: Package.Dependency.Requirement = .upToNextMajor(from: "1.0.0")
 
 #else
 
-    let CryptoLibUrl = "https://github.com/IBM-Swift/OpenSSL.git"
+    let CryptoLibUrl = "https://github.com/Kitura/OpenSSL.git"
     let CryptoLibVersion: Package.Dependency.Requirement = .upToNextMajor(from: "1.0.1")
     targetDependencies.append(.byName(name: "OpenSSL"))
 
