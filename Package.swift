@@ -4,7 +4,7 @@
 //  Package.swift
 //  CryptorECC
 //
-//  Copyright © 2019 IBM. All rights reserved.
+//  Copyright © 2019-2020 IBM and the authors of the Kitura project. All rights reserved.
 //
 //     Licensed under the Apache License, Version 2.0 (the "License");
 //     you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ var targetDependencies: [Target.Dependency] = []
 
 #if os(Linux)
 
-dependencies.append(.package(url: "https://github.com/IBM-Swift/OpenSSL.git", from: "2.2.2"))
+dependencies.append(.package(url: "https://github.com/Kitura/OpenSSL.git", from: "2.2.2"))
 targetDependencies.append(.byName(name: "OpenSSL"))
 
 #endif
