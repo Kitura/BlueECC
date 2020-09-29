@@ -25,12 +25,12 @@ var targetDependencies: [Target.Dependency] = []
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 
     let CryptoLibUrl = "https://github.com/Kitura/CommonCrypto.git"
-    let CryptoLibVersion: Package.Dependency.Requirement = .upToNextMajor(from: "1.0.0")
+    let CryptoLibVersion: Package.Dependency.Requirement = .upToNextMajor(from: "1.0.200")
 
 #else
 
     let CryptoLibUrl = "https://github.com/Kitura/OpenSSL.git"
-    let CryptoLibVersion: Package.Dependency.Requirement = .upToNextMajor(from: "1.0.1")
+    let CryptoLibVersion: Package.Dependency.Requirement = .upToNextMajor(from: "1.0.200")
     targetDependencies.append(.byName(name: "OpenSSL"))
 
 #endif
