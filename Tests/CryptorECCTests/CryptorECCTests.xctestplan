@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "4481E25B-888C-4AED-B93C-64B5F62E0C03",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testExecutionOrdering" : "random"
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:CryptorECC.xcodeproj",
+        "identifier" : "502F0AD028E76DD9009CE053",
+        "name" : "CryptorECCTests"
+      }
+    }
+  ],
+  "version" : 1
+}
