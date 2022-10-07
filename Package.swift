@@ -26,7 +26,7 @@ var targetDependencies: [Target.Dependency] = []
 
 #if os(Linux)
 
-dependencies.append(.package(url: "https://github.com/Kitura/OpenSSL.git", from: "2.2.200"))
+dependencies.append(.package(url: "https://github.com/Kitura/OpenSSL.git", from: "2.3.1"))
 targetDependencies.append(.byName(name: "OpenSSL"))
 
 #endif
