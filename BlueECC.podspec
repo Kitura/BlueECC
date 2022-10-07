@@ -13,4 +13,5 @@ Pod::Spec.new do |s|
   s.watchos.deployment_target = "4.0"
   s.source   = { :git => "https://github.com/Kitura/BlueECC.git", :tag => s.version }
   s.source_files = "Sources/**/*.swift"
+  s.swift_versions = '5.2'
 end
