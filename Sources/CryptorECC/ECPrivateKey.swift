@@ -214,7 +214,6 @@ public class ECPrivateKey {
                               0x30, 0x13,
                               0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
                               0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x01, 0x03, 0x32])
-            
         } else if self.curve == .prime256v1 {
             keyHeader = Data([0x30, 0x59,
                               0x30, 0x13,
@@ -287,7 +286,9 @@ public class ECPrivateKey {
         #else
         let kAsymmetricCryptoManagerKeyType = kSecAttrKeyTypeECSECPrimeRandom
         let kAsymmetricCryptoManagerKeySize: Int
-        if curve == .prime256v1 {
+        if curve == .prime192v1 {
+            kAsymmetricCryptoManagerKeySize = 192
+        } else if curve == .prime256v1 {
             kAsymmetricCryptoManagerKeySize = 256
         } else if curve == .secp384r1 {
             kAsymmetricCryptoManagerKeySize = 384
