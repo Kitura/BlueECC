@@ -209,7 +209,13 @@ public class ECPrivateKey {
         //         OBJECT IDENTIFIER
         //         OBJECT IDENTIFIER
         //     BIT STRING (This is the `pubKeyBytes` added afterwards)
-        if self.curve == .prime256v1 {
+        if self.curve == .prime192v1 {
+            keyHeader = Data([0x30, 0x49,
+                              0x30, 0x13,
+                              0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
+                              0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x01, 0x03, 0x32])
+            
+        } else if self.curve == .prime256v1 {
             keyHeader = Data([0x30, 0x59,
                               0x30, 0x13,
                               0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
