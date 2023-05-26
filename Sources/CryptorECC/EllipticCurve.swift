@@ -29,8 +29,11 @@ public struct EllipticCurve: Equatable, CustomStringConvertible {
     
     // enum for faster comparisons
     private enum InternalRepresentation: String {
-        case prime256v1, secp384r1, secp521r1
+        case prime256v1, secp384r1, secp521r1, prime192v1
     }
+    
+    /// A prime 192 curve
+    public static let prime192v1 = EllipticCurve.p192
     
     /// A prime256v1 curve.
     public static let prime256v1 = EllipticCurve.p256
@@ -84,6 +87,12 @@ public struct EllipticCurve: Equatable, CustomStringConvertible {
                                     nativeCurve: NID_secp521r1,
                                     keySize: 133)
     #else
+    /// Secure Hash Algorithm 2 192-bit
+    static let p192 = EllipticCurve(internalRepresentation: .prime192v1,
+                                    signingAlgorithm: .ecdsaSignatureDigestX962SHA256,
+                                    hashEngine: CC_SHA256,
+                                    hashLength: CC_LONG(CC_SHA256_DIGEST_LENGTH),
+                                    keySize: 49)
     /// Secure Hash Algorithm 2 256-bit
     static let p256 = EllipticCurve(internalRepresentation: .prime256v1,
                                     signingAlgorithm: .ecdsaSignatureDigestX962SHA256,
@@ -108,8 +117,10 @@ public struct EllipticCurve: Equatable, CustomStringConvertible {
     
     // Select the ECAlgorithm based on the object identifier (OID) extracted from the EC key.
     static func objectToCurve(ObjectIdentifier: Data) throws -> EllipticCurve {
-        
-        if [UInt8](ObjectIdentifier) == [0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07] {
+
+        if [UInt8](ObjectIdentifier) == [0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x01] { // 1.2.840.10045.3.1.1
+            return .prime192v1
+        } else if [UInt8](ObjectIdentifier) == [0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07] { //1.2.840.10045.3.1.7
             // p-256 (e.g: prime256v1, secp256r1) private key
             return .prime256v1
         } else if [UInt8](ObjectIdentifier) == [0x2B, 0x81, 0x04, 0x00, 0x22] {
