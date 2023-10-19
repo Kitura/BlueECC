@@ -13,7 +13,7 @@
 //     limitations under the License.
 //
 import Foundation
-#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+#if !os(Linux)
 import CommonCrypto
 #elseif os(Linux)
 import OpenSSL
