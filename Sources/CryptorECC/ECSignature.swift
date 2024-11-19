@@ -15,10 +15,10 @@
 
 import Foundation
 
-#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
-import CommonCrypto
-#elseif os(Linux)
+#if os(Linux)
 import OpenSSL
+#else
+import CommonCrypto
 #endif
 
 /// The signature produced by applying an Elliptic Curve Digital Signature Algorithm to some Plaintext data.
