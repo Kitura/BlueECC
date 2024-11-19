@@ -5,7 +5,7 @@
 </p>
 
 
-[![](https://img.shields.io/badge/apidoc-BlueECC-1FBCE4.svg?style=flat" alt="APIDoc")](https://kitura.github.io/BlueECC/index.html)
+[![](https://img.shields.io/badge/apidoc-BlueECC-1FBCE4.svg?style=flat)](https://kitura.github.io/BlueECC/index.html)
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FKitura%2FBlueECC%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/Kitura/BlueECC)
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FKitura%2FBlueECC%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/Kitura/BlueECC)
 
