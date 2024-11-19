@@ -15,10 +15,10 @@
 
 import Foundation
 
-#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
-import CommonCrypto
-#elseif os(Linux)
+#if os(Linux)
 import OpenSSL
+#else
+import CommonCrypto
 #endif
 
 /// Extensions for encrypting, decrypting or signing `Data` using the appropriate algorithm determined by the key's curve with the provided `ECPrivateKey` or `ECPublicKey`.

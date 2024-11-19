@@ -15,10 +15,10 @@
 
 import Foundation
 
-#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
-    import CommonCrypto
-#elseif os(Linux)
-    import OpenSSL
+#if os(Linux)
+import OpenSSL
+#else
+import CommonCrypto
 #endif
 
 /// An extensible list of elliptic curves supported by this repository.

@@ -15,10 +15,10 @@
 
 import Foundation
 
-#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
-import CommonCrypto
-#elseif os(Linux)
+#if os(Linux)
 import OpenSSL
+#else
+import CommonCrypto
 #endif
 
 /// A protocol for encrypting an instance of some object to generate some encrypted data.
