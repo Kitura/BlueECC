@@ -303,7 +303,10 @@ public class ECPrivateKey {
         // The keys are automatically stored in the keychain
         guard let privKey = SecKeyCreateRandomKey(parameters as CFDictionary, &error),
             let pubKey = SecKeyCopyPublicKey(privKey) else {
-            throw ECError.failedNativeKeyCreation
+            guard let error = error?.takeRetainedValue() else {
+                throw ECError.failedNativeKeyCreation
+            }
+            throw error
         }
         
         error = nil
