@@ -255,7 +255,9 @@ public class ECPrivateKey {
         self.curve = curve
         self.curveId = curve.description
         self.stripped = true
-        #if os(Linux)
+        
+#if os(Linux)
+        
         let ec_key = EC_KEY_new_by_curve_name(curve.nativeCurve)
         EC_KEY_generate_key(ec_key)
         self.nativeKey = ec_key
@@ -278,7 +280,9 @@ public class ECPrivateKey {
             pubk.deallocate(capacity: curve.keySize)
             #endif
         }
-        #else
+
+#else
+
         let kAsymmetricCryptoManagerKeyType = kSecAttrKeyTypeECSECPrimeRandom
         let kAsymmetricCryptoManagerKeySize: Int
         if curve == .prime256v1 {
@@ -288,26 +292,36 @@ public class ECPrivateKey {
         } else {
             kAsymmetricCryptoManagerKeySize = 521
         }
-        // parameters
-        let parameters: [String: AnyObject] = [
-            kSecAttrKeyType as String:          kAsymmetricCryptoManagerKeyType,
-            kSecAttrKeySizeInBits as String:    kAsymmetricCryptoManagerKeySize as AnyObject,
-            ]
-        var pubKey, privKey: SecKey?
-        let status = SecKeyGeneratePair(parameters as CFDictionary, &pubKey, &privKey)
-        guard status == 0, let newPubKey = pubKey, let newPrivKey = privKey else {
-            throw ECError.failedNativeKeyCreation
+        
+        let parameters: [NSObject: Any] = [
+            kSecAttrKeyType: kAsymmetricCryptoManagerKeyType,
+            kSecAttrKeySizeInBits: kAsymmetricCryptoManagerKeySize,
+        ]
+        
+        var error: Unmanaged<CFError>?
+
+        // The keys are automatically stored in the keychain
+        guard let privKey = SecKeyCreateRandomKey(parameters as CFDictionary, &error),
+            let pubKey = SecKeyCopyPublicKey(privKey) else {
+            guard let error = error?.takeRetainedValue() else {
+                throw ECError.failedNativeKeyCreation
+            }
+            throw error
         }
-        var error: Unmanaged<CFError>? = nil
-        guard let pubBytes = SecKeyCopyExternalRepresentation(newPubKey, &error) else {
+        
+        error = nil
+        
+        guard let pubBytes = SecKeyCopyExternalRepresentation(pubKey, &error) else {
             guard let error = error?.takeRetainedValue() else {
                 throw ECError.failedNativeKeyCreation
             }
             throw error
         }
         self.pubKeyBytes = pubBytes as Data
-        self.nativeKey = newPrivKey
-        #endif
+        self.nativeKey = privKey
+        
+#endif
+        
         self.pemString = try ECPrivateKey.decodeToPEM(nativeKey: self.nativeKey, curve: self.curve)
     }
     
