@@ -460,6 +460,12 @@ Mw==
     
     func test_newPrivatekey() {
         do {
+            let p192PrivateKey = try ECPrivateKey.make(for: .prime192v1)
+            let p192PubKey = try p192PrivateKey.extractPublicKey()
+            let p192signature = try "Hello world".sign(with: p192PrivateKey)
+            let p192verified = p192signature.verify(plaintext: "Hello world", using: p192PubKey)
+            XCTAssertTrue(p192verified)
+            
             let p256PrivateKey = try ECPrivateKey.make(for: .prime256v1)
             let p256PubKey = try p256PrivateKey.extractPublicKey()
             let signature = try "Hello world".sign(with: p256PrivateKey)
