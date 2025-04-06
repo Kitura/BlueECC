@@ -69,4 +69,12 @@ public struct ECError: Error, Equatable {
     public static func == (lhs: ECError, rhs: ECError) -> Bool {
         return lhs.internalError == rhs.internalError
     }
+    
+    /// Function to enable pattern matching against generic Errors.
+    public static func ~= (lhs: ECError, rhs: Error) -> Bool {
+        guard let rhs = rhs as? ECError else {
+            return false
+        }
+        return lhs == rhs
+    }
 }
