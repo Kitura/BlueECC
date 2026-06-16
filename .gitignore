@@ -1,13 +1,10 @@
 .DS_Store
-/.build
-/Packages
 /*.xcodeproj
-Package.resolved
-/build
 
 # Swift Package Manager
 #
-# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
-# Packages/
-.build/
-.swiftpm
+/Packages
+/Package.resolved
+/build
+/.build
+/.swiftpm
